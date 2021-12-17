@@ -1,43 +1,11 @@
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import os
-import requests
 import time
 from pprint import pprint
-import re
 from random import randint
 from time import sleep
-
-
-
-def requestAccommodationInformation(url):
-    r = requests.get(
-        url,
-        headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0)"
-            " Gecko/20100101 Firefox/48.0"
-        },
-    )
-
-    return r.content
-
-
-def extractNumberOfAvailableProperties(numberOfAvailablePropertiesString):
-    numberOfAvailablePropertiesRegexCheck = re.findall("[0-9]", numberOfAvailablePropertiesString)
-    numberOfAvailableProperties = ''.join(numberOfAvailablePropertiesRegexCheck)
-    print(numberOfAvailableProperties)
-    return int(numberOfAvailableProperties)
-
-
-def stripWhiteSpace (string):
-    return string.strip()
-
-
-def checkAvailableNode (node):
-    try:
-        return node
-    except IndexError:
-        return default
+from scrapeAccommodationInfo import requestAccommodationInformation, extractNumberOfAvailableProperties, stripWhiteSpace, findElementsBeautifulSoup
 
 
 
@@ -46,24 +14,34 @@ def scrapeHotelInformation (data, offset):
 
     #with open("kilkenny_booking_6.com.html", "w", encoding='utf-8') as file:
     #   file.write(str(soup.prettify()))
+
     
-
-
+    
     #Find number of properties available (use this to loop over different pages of results)
     numberOfProperties = soup.findAll("div", attrs={'data-component': 'arp-header'})[0].findChildren("h1")[0].text
 
 
-    hotelNames = soup.findAll("div",attrs={'data-testid' : 'title'}) 
-    bookingSiteLinks = soup.findAll("a", attrs={'data-testid': 'title-link'})
-    bookingSiteLocationLinks = soup.findAll("div", attrs={'data-testid': 'location'})
-    bookingSiteLocationTexts = soup.findAll("span", attrs={'data-testid': 'address'})
-    bookingSiteDistances = soup.findAll("span", attrs={'data-testid': 'distance'})
-    bookingSiteReviews = soup.findAll("div", attrs={'data-testid': 'review-score'})
-    bookingSiteAvailabilityGroup = soup.findAll("div", attrs={'data-testid': 'availability-group'})
-    bookingSiteAvailabilitySingle = soup.findAll("div", attrs={'data-testid': 'availability-single'})
-    bookingSiteRoomNightAvailability = soup.findAll("div", attrs={'data-testid': 'price-for-x-nights'})
-    bookingSitePrices = soup.findAll("div", attrs={'data-testid': 'price-and-discounted-price'})
-    bookingSiteRoomLink = soup.findAll("div", attrs={'data-testid' : 'availability-cta'})
+    hotelNames = findElementsBeautifulSoup(soup,"div", "title")
+
+    bookingSiteLinks = findElementsBeautifulSoup(soup,"a", "title-link")
+
+    bookingSiteLocationLinks = findElementsBeautifulSoup(soup,"div", "location")
+ 
+    bookingSiteLocationTexts = findElementsBeautifulSoup(soup,"span", "address")
+
+    bookingSiteDistances = findElementsBeautifulSoup(soup,"span", "distance")
+
+    bookingSiteReviews = findElementsBeautifulSoup(soup,"div", "review-score")
+
+    bookingSiteAvailabilityGroup = findElementsBeautifulSoup(soup, "div", "availability-group")
+
+    bookingSiteAvailabilitySingle = findElementsBeautifulSoup(soup,"div", "availability-single")
+
+    bookingSiteRoomNightAvailability = findElementsBeautifulSoup(soup,"div", "price-for-x-nights")
+ 
+    bookingSitePrices = findElementsBeautifulSoup(soup,"div", "price-and-discounted-price")
+ 
+    bookingSiteRoomLink = findElementsBeautifulSoup(soup,"div", "availability-cta")
 
     availablePropertiesArray = []
     
@@ -176,8 +154,6 @@ def scrapeHotelInformation (data, offset):
             "price": stripWhiteSpace(bookingSitePrices[i].findChildren("span")[0].text),
             "bookingPreviewLink": stripWhiteSpace(bookingSiteRoomLink[i].findChildren("a")[0]['href'])
         })
-    
-    #pprint(availablePropertiesArray)
 
     return {
         "propertiesResult": availablePropertiesArray,
@@ -200,15 +176,15 @@ while additionalPage:
 
     print(url)
     print(offset)
-    #html = None
-    html = requestAccommodationInformation(url)
+    html = None
+    #html = requestAccommodationInformation(url)
     
-    #with open('limerick_booking.com.html', 'r') as f:
-    #    contents = f.read()
-    #    html = contents
+    with open('limerick_booking.com.html', 'r') as f:
+        contents = f.read()
+        html = contents
         
        
-    sleep(randint(5,15))
+    #sleep(randint(5,15))
     resultDict = scrapeHotelInformation(html, offset) 
     finalCheckArray.append(resultDict['propertiesResult'])
     numberOfProperties = extractNumberOfAvailableProperties(resultDict['numberOfPropertiesString'])
