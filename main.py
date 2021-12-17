@@ -22,36 +22,11 @@ def requestAccommodationInformation(url):
     return r.content
 
 
-
-
-
 def extractNumberOfAvailableProperties(numberOfAvailablePropertiesString):
     numberOfAvailablePropertiesRegexCheck = re.findall("[0-9]", numberOfAvailablePropertiesString)
     numberOfAvailableProperties = ''.join(numberOfAvailablePropertiesRegexCheck)
     print(numberOfAvailableProperties)
     return int(numberOfAvailableProperties)
-#html = requestAccommodationInformation(url)
-
-test = {
-        "propertiesResult": [],
-        "offset": 0,
-        "numberOfPropertiesString": "Dublin: 186 properties found"
-    }
-
-#numberofAvailableProperties = extractNumberOfAvailableProperties(test['numberOfPropertiesString'])
-
-"""
-r = requests.get(
-        "https://www.booking.com/searchresults.en-gb.html?aid=304142&sb_price_type%3Dtotal%3Bsrpvid%3Dff4c997b5ad30070%26%3B=&ss=Dublin&is_ski_area=0&ssne=Dublin&ssne_untouched=Dublin&dest_id=-1502554&dest_type=city&checkin_year=2022&checkin_month=1&checkin_monthday=26&checkout_year=2022&checkout_month=1&checkout_monthday=29&group_adults=5&group_children=0&no_rooms=1&b_h4u_keep_filters=&from_sf=1",
-        headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0)"
-            " Gecko/20100101 Firefox/48.0"
-        },
-    )
-
-html = r.content
-"""
-
 
 
 def stripWhiteSpace (string):
@@ -69,8 +44,8 @@ def checkAvailableNode (node):
 def scrapeHotelInformation (data, offset):
     soup = BeautifulSoup(data, 'html.parser')
 
-    with open("dublin_booking_5.com.html", "w", encoding='utf-8') as file:
-        file.write(str(soup.prettify()))
+    #with open("kilkenny_booking_6.com.html", "w", encoding='utf-8') as file:
+    #   file.write(str(soup.prettify()))
     
 
 
@@ -101,6 +76,7 @@ def scrapeHotelInformation (data, offset):
         ratingScoreCategory = None
         reviewQuantity = None
         bookingSiteAvailabilityType = None
+        numberOfRoomsRecommendedBooking = None
 
         if i < len(bookingSiteReviews):
 
@@ -143,13 +119,13 @@ def scrapeHotelInformation (data, offset):
                     freeCancellationText = "Free Cancellation Not Available"
 
             
-                print("CHECKING HERE")
-                print(bookingSiteAvailabilityGroup[i].findChildren("span")[0])
             
                 if len(bookingSiteAvailabilityGroup[i].findChildren("div")[1].findChildren("span")) > 3:
-                    roomTypeRecommendedBooking = bookingSiteAvailabilityGroup[i].findChildren("div")[1].findChildren("span")[3].text
+                    roomTypeRecommendedBooking = bookingSiteAvailabilityGroup[i].findChildren("span")[3].text
+                    numberOfRoomsRecommendedBooking = bookingSiteAvailabilityGroup[i].findChildren("span")[2].text
                 else:
                     roomTypeRecommendedBooking = "Recommended Booking Room Type Info Not Available"
+                    numberOfRoomsRecommendedBooking = "Number of Rooms Info Not Available"
             
                 if len(bookingSiteAvailabilityGroup[i].findChildren("div")[1].findChildren("div")) > 4:
                     numberOfBedsRecommendedBooking = bookingSiteAvailabilityGroup[i].findChildren("div")[1].findChildren("div")[4].text
@@ -164,16 +140,15 @@ def scrapeHotelInformation (data, offset):
                 freeCancellationText = None
                 roomTypeRecommendedBooking = None
                 numberOfBedsRecommendedBooking = None
+                numberOfRoomsRecommendedBooking = bookingSiteAvailabilitySingle[i].findChildren("span")[0].text
                 if len(bookingSiteAvailabilitySingle[i].findChildren("div")[1].findChildren("div")) >= 7:
                     freeCancellationText = bookingSiteAvailabilitySingle[i].findChildren("div")[1].findChildren("div")[6].text
                 else:
                     freeCancellationText = "Free Cancellation Not Available"
 
             
-                print("BEFORE CHEDCK")
-                print(bookingSiteAvailabilitySingle[i].findChildren("span")[0].text)
+              
                 if len(bookingSiteAvailabilitySingle[i].findChildren("span")) > 0:
-                    print("ARE WEE THERE")
                     roomTypeRecommendedBooking = bookingSiteAvailabilitySingle[i].findChildren("span")[0].text
                 else:
                     roomTypeRecommendedBooking = "Recommended Booking Room Type Info Not Available"
@@ -193,8 +168,7 @@ def scrapeHotelInformation (data, offset):
             "ratingScore": stripWhiteSpace(ratingScore),
             "ratingScoreCategory": stripWhiteSpace(ratingScoreCategory),
             "reviewQuantity": stripWhiteSpace(reviewQuantity),
-            #"numberOfRoomsRecommendedBooking": stripWhiteSpace(bookingSiteAvailabilityType.findChildren("div")[1].findChildren("span")[2].text),
-            "numberOfRoomsRecommendedBooking": stripWhiteSpace(bookingSiteAvailabilityType.findChildren("span")[0].text),
+            "numberOfRoomsRecommendedBooking": stripWhiteSpace(numberOfRoomsRecommendedBooking),
             "roomTypeRecommendedBooking": stripWhiteSpace(roomTypeRecommendedBooking),
             "numberOfBedsRecommendedBooking": stripWhiteSpace(numberOfBedsRecommendedBooking),
             "freeCancellationText": stripWhiteSpace(freeCancellationText),
@@ -218,7 +192,7 @@ offsetQueryParameter = ''
 finalCheckArray = []
 
 while additionalPage:
-    url = "https://www.booking.com/searchresults.en-gb.html?aid=304142&sb_price_type%3Dtotal%3Bsrpvid%3Dff4c997b5ad30070%26%3B=&ss=Dublin&is_ski_area=0&ssne=Dublin&ssne_untouched=Dublin&dest_id=-1502554&dest_type=city&checkin_year=2022&checkin_month=4&checkin_monthday=6&checkout_year=2022&checkout_month=4&checkout_monthday=8&group_adults=5&group_children=0&no_rooms=1&b_h4u_keep_filters=&from_sf=1"
+    url = "https://www.booking.com/searchresults.en-gb.html?aid=304142&sb_price_type%3Dtotal%3Bsrpvid%3Dff4c997b5ad30070%26%3B=&ss=Kilkenny&is_ski_area=0&ssne=Kilkenny&ssne_untouched=Kilkenny&dest_id=-1503733&dest_type=city&checkin_year=2022&checkin_month=1&checkin_monthday=14&checkout_year=2022&checkout_month=1&checkout_monthday=15&group_adults=6&group_children=0&no_rooms=1&b_h4u_keep_filters=&from_sf=1"
     if offset > 0:
         offsetQueryParameter = "&offset={quantity}".format(quantity=offset)
         url += offsetQueryParameter
@@ -230,8 +204,8 @@ while additionalPage:
     html = requestAccommodationInformation(url)
     
     #with open('limerick_booking.com.html', 'r') as f:
-     #   contents = f.read()
-     #   html = contents
+    #    contents = f.read()
+    #    html = contents
         
        
     sleep(randint(5,15))
