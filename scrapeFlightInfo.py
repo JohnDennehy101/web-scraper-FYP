@@ -1,33 +1,62 @@
 from bs4 import BeautifulSoup
+from utils import findElementsBeautifulSoup, stripWhiteSpace
 
-def scrapeFlightInformation (data, offset):
+def returnScrapedFlightInformation(flightDepartureTime, flightArrivalTime, airportName, flightDuration, directFlightText, availableFlightPriceInfo):
+    availableFlight = {
+            "departureTime": stripWhiteSpace(flightDepartureTime.text),
+            "arrivalTime": stripWhiteSpace(flightArrivalTime.text),
+            "airport": stripWhiteSpace(airportName.text),
+            "duration": stripWhiteSpace(flightDuration.text),
+            "directFlight": stripWhiteSpace(directFlightText.text),
+            "carrier": stripWhiteSpace(availableFlightPriceInfo["carrier"]),
+            "pricePerPerson": stripWhiteSpace(availableFlightPriceInfo["pricePerPerson"]),
+            "priceTotal": stripWhiteSpace(availableFlightPriceInfo["priceTotal"])
+            }
+    return availableFlight
+
+def returnScrapedFlightPriceInfo(flightsCarrierName, flightsPricePerPerson, flightsPriceTotals):
+    return {
+        "carrier": stripWhiteSpace(flightsCarrierName.text),
+        "pricePerPerson": stripWhiteSpace(flightsPricePerPerson.findChildren("span")[0].text),
+        "priceTotal": stripWhiteSpace(flightsPriceTotals.text)
+    }
+
+
+def scrapeFlightInformation (data):
     soup = BeautifulSoup(data, 'html.parser')
 
-    flightResultsParentContainer = soup.findAll('div', attrs={"class": "best-flights-list-results"})
+    flightDepartureTimes = findElementsBeautifulSoup(soup,"span", "class", "depart-time base-time")
 
-    flightDepartureTimes = soup.findAll('span', attrs={"class": "depart-time base-time"})
+    flightArrivalTimes = findElementsBeautifulSoup(soup,"span", "class", "arrival-time base-time")
 
-    flightArrivalTimes = soup.findAll('span', attrs={"class": "arrival-time base-time"})
+    airportNames = findElementsBeautifulSoup(soup,"span", "class", "airport-name")
 
-    airportNames = soup.findAll('span', attrs={"class": "airport-name"})
+    flightDurations = findElementsBeautifulSoup(soup,"div", "class", "section duration allow-multi-modal-icons")
 
-    #Loop in each flightDurations[i].findChildren("div")[0]
-    flightDurations = soup.findAll('div', attrs={"class": "section duration allow-multi-modal-icons"})
+    directFlightTexts = findElementsBeautifulSoup(soup,"span", "class", "stops-text")
 
-    directFlightTexts = soup.findAll('span', attrs={"class": "stops-text"})
+    flightCarrierNames = findElementsBeautifulSoup(soup,"span", "class", "codeshares-airline-names")
 
-    flightCarrierNames = soup.findAll('span', attrs={"class": "codeshares-airline-names"})
+    flightsPricePerPerson = findElementsBeautifulSoup(soup,"span", "class", "price option-text with-per-person-price")
 
-    #Loop in each to get price per person (will need to join 2 strings) flightsPricePerPerson[0].findChildren('span')[0] & flightsPricePerPerson[0].findChildren('span')[1] 
-    flightsPricePerPerson = soup.findAll('span', attrs={"class": "price option-text with-per-person-price"})
+    flightsPriceTotals = findElementsBeautifulSoup(soup,"div", "class", "price-total")
 
-    flightsPriceTotals = soup.findAll('div', attrs={"class": "price-total"})
+    flightGroup = []
+    availableFlightsDict = {}
+    availableFlightsDictIndex = 0
+    for i in range(0, len(flightDepartureTimes)):
 
+        if i % 2 == 0:
+            index = int(i / 2)
+            availableFlightPriceInfo = returnScrapedFlightPriceInfo(flightCarrierNames[index], flightsPricePerPerson[index], flightsPriceTotals[index])
 
-    for item in flightsPricePerPerson:
-        print(item)
+            flightGroup.append((returnScrapedFlightInformation(flightDepartureTimes[i], flightArrivalTimes[i], airportNames[i], flightDurations[i], directFlightTexts[i], availableFlightPriceInfo)))
 
+            if (len(flightGroup) > 1):
+                availableFlightsDict[availableFlightsDictIndex] = flightGroup
+                flightGroup = []
+                availableFlightsDictIndex += 1
+        else:
+            flightGroup.append((returnScrapedFlightInformation(flightDepartureTimes[i], flightArrivalTimes[i], airportNames[i], flightDurations[i], directFlightTexts[i], availableFlightPriceInfo)))
     
-
-    #with open("dublin_london_kayak.com.html", "w", encoding='utf-8') as file:
-    #   file.write(str(soup.prettify()))
+    return availableFlightsDict

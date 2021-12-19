@@ -1,17 +1,12 @@
 import re
 from bs4 import BeautifulSoup
+from utils import findElementsBeautifulSoup, stripWhiteSpace
 
 def extractNumberOfAvailableProperties(numberOfAvailablePropertiesString):
     numberOfAvailablePropertiesRegexCheck = re.findall("[0-9]", numberOfAvailablePropertiesString)
     numberOfAvailableProperties = ''.join(numberOfAvailablePropertiesRegexCheck)
     print(numberOfAvailableProperties)
     return int(numberOfAvailableProperties)
-
-def stripWhiteSpace(string):
-    return string.strip()
-
-def findElementsBeautifulSoup(soup, elementType, attribute):
-    return soup.findAll(elementType,attrs={'data-testid' : attribute}) 
 
 def returnScrapedHotelInformation(hotelName, bookingSiteLink, bookingSiteLocationLink, bookingSiteLocationText, bookingSiteDistance, bookingSiteReviews, bookingSiteAvailabilityGroup, bookingSiteAvailabilitySingle, bookingSiteRoomNightAvailability, bookingSitePrice, bookingSiteRoomLink, i):
 
@@ -135,27 +130,27 @@ def scrapeHotelInformation (data, offset):
     numberOfProperties = soup.findAll("div", attrs={'data-component': 'arp-header'})[0].findChildren("h1")[0].text
 
 
-    hotelNames = findElementsBeautifulSoup(soup,"div", "title")
+    hotelNames = findElementsBeautifulSoup(soup,"div", "data-testid", "title")
 
-    bookingSiteLinks = findElementsBeautifulSoup(soup,"a", "title-link")
+    bookingSiteLinks = findElementsBeautifulSoup(soup,"a", "data-testid", "title-link")
 
-    bookingSiteLocationLinks = findElementsBeautifulSoup(soup,"div", "location")
+    bookingSiteLocationLinks = findElementsBeautifulSoup(soup,"div", "data-testid", "location")
  
-    bookingSiteLocationTexts = findElementsBeautifulSoup(soup,"span", "address")
+    bookingSiteLocationTexts = findElementsBeautifulSoup(soup,"span", "data-testid", "address")
 
-    bookingSiteDistances = findElementsBeautifulSoup(soup,"span", "distance")
+    bookingSiteDistances = findElementsBeautifulSoup(soup,"span", "data-testid", "distance")
 
-    bookingSiteReviews = findElementsBeautifulSoup(soup,"div", "review-score")
+    bookingSiteReviews = findElementsBeautifulSoup(soup,"div", "data-testid", "review-score")
 
-    bookingSiteAvailabilityGroup = findElementsBeautifulSoup(soup, "div", "availability-group")
+    bookingSiteAvailabilityGroup = findElementsBeautifulSoup(soup, "div", "data-testid", "availability-group")
 
-    bookingSiteAvailabilitySingle = findElementsBeautifulSoup(soup,"div", "availability-single")
+    bookingSiteAvailabilitySingle = findElementsBeautifulSoup(soup,"div", "data-testid", "availability-single")
 
-    bookingSiteRoomNightAvailability = findElementsBeautifulSoup(soup,"div", "price-for-x-nights")
+    bookingSiteRoomNightAvailability = findElementsBeautifulSoup(soup,"div", "data-testid", "price-for-x-nights")
  
-    bookingSitePrices = findElementsBeautifulSoup(soup,"div", "price-and-discounted-price")
+    bookingSitePrices = findElementsBeautifulSoup(soup,"div", "data-testid", "price-and-discounted-price")
  
-    bookingSiteRoomLink = findElementsBeautifulSoup(soup,"div", "availability-cta")
+    bookingSiteRoomLink = findElementsBeautifulSoup(soup,"div", "data-testid", "availability-cta")
     
     availablePropertiesArray = []
     for i in range(0, len(hotelNames)):

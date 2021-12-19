@@ -1,4 +1,5 @@
 import requests
+from bs4 import BeautifulSoup
 
 def makeWebScrapeRequest(url):
     r = requests.get(
@@ -10,3 +11,9 @@ def makeWebScrapeRequest(url):
     )
 
     return r.content
+
+def findElementsBeautifulSoup(soup, elementType, attribute, attributeValue):
+    return soup.findAll(elementType,attrs={attribute : attributeValue}) 
+
+def stripWhiteSpace(string):
+    return string.strip()
