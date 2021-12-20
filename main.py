@@ -8,11 +8,51 @@ from scrapeAccommodationInfo import extractNumberOfAvailableProperties, stripWhi
 from scrapeFlightInfo import scrapeFlightInformation
 from utils import makeWebScrapeRequest
 from flask import Flask, make_response, request, jsonify
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import create_refresh_token
+from flask_jwt_extended import JWTManager
+from flask_jwt_extended import get_jwt_identity
+from datetime import timedelta
 
 app = Flask(__name__)
 
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+ACCESS_USERNAME = os.getenv("ACCESS_USERNAME")
+ACCESS_PASSWORD = os.getenv("ACCESS_PASSWORD")
+
+app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
+jwt = JWTManager(app)
+
+@app.route("/login", methods=["POST"])
+def login():
+    username = request.json.get("username", None)
+    password = request.json.get("password", None)
+
+    print(username)
+    print(password)
+
+    if username != ACCESS_USERNAME or password != ACCESS_PASSWORD:
+        # Correct credentials were not provided
+        return jsonify({"msg": "Wrong username or password"}), 401
+    
+    # create a new token with the username stored inside
+    access_token = create_access_token(identity=username, fresh=True)
+    refresh_token = create_refresh_token(identity=username)
+    return jsonify(access_token=access_token,refresh_token=refresh_token)
+
+@app.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh_token():
+    identity = get_jwt_identity()
+    access_token= create_access_token(identity=identity, fresh=False)
+    return jsonify(access_token=access_token)
 
 @app.route('/accommodation', methods=['GET'])
+@jwt_required(fresh=True)
 def get_accommodation_information():
     additionalPage = True
     offset = 0
@@ -68,6 +108,7 @@ def get_accommodation_information():
 
 
 @app.route('/flights', methods=['GET'])
+@jwt_required(fresh=True)
 def get_flight_information():
 
     """
