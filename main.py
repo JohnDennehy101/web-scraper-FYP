@@ -6,7 +6,7 @@ from random import randint
 from time import sleep
 from scrapeAccommodationInfo import extractNumberOfAvailableProperties, stripWhiteSpace, findElementsBeautifulSoup, scrapeHotelInformation, returnScrapedHotelInformation
 from scrapeFlightInfo import scrapeFlightInformation
-from utils import makeWebScrapeRequest
+from utils import makeWebScrapeRequest, returnDateComponents
 from flask import Flask, make_response, request, jsonify
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt
@@ -15,6 +15,7 @@ from flask_jwt_extended import create_refresh_token
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import get_jwt_identity
 from datetime import timedelta
+from string import Template
 
 app = Flask(__name__)
 
@@ -54,6 +55,15 @@ def refresh_token():
 @app.route('/accommodation', methods=['GET'])
 @jwt_required(fresh=True)
 def get_accommodation_information():
+    destinationCity = request.args.get('destinationCity')
+    startDate = request.args.get('startDate')
+    endDate = request.args.get('endDate')
+    numberOfPeople = request.args.get('numberOfPeople')
+    numberOfRooms = request.args.get('numberOfRooms')
+
+    startDateDict = returnDateComponents(startDate)
+    endDateDict = returnDateComponents(endDate)
+
     additionalPage = True
     offset = 0
     offsetQueryParameter = ''
@@ -61,7 +71,10 @@ def get_accommodation_information():
     }}
 
     while additionalPage:
-        hotelSiteUrl = "https://www.booking.com/searchresults.en-gb.html?aid=304142&sb_price_type%3Dtotal%3Bsrpvid%3Dff4c997b5ad30070%26%3B=&ss=Kilkenny&is_ski_area=0&ssne=Kilkenny&ssne_untouched=Kilkenny&dest_id=-1503733&dest_type=city&checkin_year=2022&checkin_month=1&checkin_monthday=14&checkout_year=2022&checkout_month=1&checkout_monthday=15&group_adults=6&group_children=0&no_rooms=1&b_h4u_keep_filters=&from_sf=1"
+        #Still need to map destination ids to dict so that they can be dynamically loaded into url
+        hotelSiteUrl = Template("https://www.booking.com/searchresults.en-gb.html?aid=304142&sb_price_type%3Dtotal%3Bsrpvid%3Dff4c997b5ad30070%26%3B=&ss=$destinationCity&is_ski_area=0&ssne=$destinationCity&ssne_untouched=$destinationCity&dest_id=-1503733&dest_type=city&checkin_year=$checkinYear&checkin_month=$checkinMonth&checkin_monthday=$checkinMonthDay&checkout_year=$checkoutYear&checkout_month=$checkoutMonth&checkout_monthday=$checkoutMonthDay&group_adults=$numberOfPeople&group_children=0&no_rooms=1&b_h4u_keep_filters=&from_sf=1")
+
+        hotelSiteUrl.substitute(destinationCity=destinationCity, checkinYear=startDateDict['year'], checkinMonth=startDateDict['month'], checkinMonthDay=startDateDict['day'], checkoutYear=endDateDict['year'], checkoutMonth=endDateDict['month'], checkoutMonthDay=endDateDict['day'], numberOfPeople=numberOfPeople)
 
         pageIndex = 1
     
@@ -70,7 +83,7 @@ def get_accommodation_information():
             hotelSiteUrl += offsetQueryParameter
     
 
-        print(hotelSiteUrl)
+        print(hotelSiteUrl.substitute(destinationCity=destinationCity, checkinYear=startDateDict['year'], checkinMonth=startDateDict['month'], checkinMonthDay=startDateDict['day'], checkoutYear=endDateDict['year'], checkoutMonth=endDateDict['month'], checkoutMonthDay=endDateDict['day'], numberOfPeople=numberOfPeople))
         print(offset)
         hotelHtml = None
         #flightHtml = makeWebScrapeRequest(flightSiteUrl)
@@ -111,13 +124,21 @@ def get_accommodation_information():
 @jwt_required(fresh=True)
 def get_flight_information():
 
+    fromCity = request.args.get('fromCity')
+    destinationCity = request.args.get('destinationCity')
+    startDate = request.args.get('startDate')
+    endDate = request.args.get('endDate')
+    numberOfPeople = request.args.get('numberOfPeople')
     """
     flightHtml = makeWebScrapeRequest(flightSiteUrl)
     flightResultDict = scrapeFlightInformation(flightHtml)
     """
 
     flightHtml = None
-    flightSiteUrl = "https://www.kayak.ie/flights/ORK-PAR/2022-01-16/2022-01-23/3adults?sort=bestflight_a"
+    #Still need to map destination ids to dict so that they can be dynamically loaded into url
+    flightSiteUrl = Template("https://www.kayak.ie/flights/ORK-PAR/$startDate/$endDate/$numberOfPeopleadults?sort=bestflight_a")
+
+    print(flightSiteUrl.substitute(startDate=str(startDate)[0:10], endDate=str(endDate)[0:10],numberOfPeopleadults=str(numberOfPeople) + 'adults'))
 
     with open('dublin_london_kayak.com.html', 'r') as f:
         contents = f.read()

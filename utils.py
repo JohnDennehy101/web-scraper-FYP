@@ -17,3 +17,10 @@ def findElementsBeautifulSoup(soup, elementType, attribute, attributeValue):
 
 def stripWhiteSpace(string):
     return string.strip()
+
+def returnDateComponents(date):
+    result = {}
+    result['year'] = str(date)[0:4]
+    result['month'] = str(date)[5:7]
+    result['day'] = str(date)[8:10]
+    return result
