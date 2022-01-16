@@ -6,7 +6,7 @@ from random import randint
 from time import sleep
 from scrapeAccommodationInfo import extractNumberOfAvailableProperties, stripWhiteSpace, findElementsBeautifulSoup, scrapeHotelInformation, returnScrapedHotelInformation
 from scrapeFlightInfo import scrapeFlightInformation
-from database import createDbConnection
+from database import checkDbForExistingRecords
 from utils import makeWebScrapeRequest, returnDateComponents
 from flask import Flask, make_response, request, jsonify
 from flask_jwt_extended import create_access_token
@@ -62,10 +62,14 @@ def get_accommodation_information():
     numberOfPeople = request.args.get('numberOfPeople')
     numberOfRooms = request.args.get('numberOfRooms')
 
-    #connection = createDbConnection("localhost", "root", "Ukulele555")
-
     startDateDict = returnDateComponents(startDate)
     endDateDict = returnDateComponents(endDate)
+
+    existingScrapedRecords = checkDbForExistingRecords(destinationCity, startDate, endDate)
+
+
+    if len(existingScrapedRecords) > 0:
+        return make_response(jsonify(existingScrapedRecords), 200)
 
     additionalPage = True
     offset = 0

@@ -24,3 +24,6 @@ def returnDateComponents(date):
     result['month'] = str(date)[5:7]
     result['day'] = str(date)[8:10]
     return result
+
+def returnStringDateRepresentation(date):
+    return "{}-{}-{}".format(str(date)[0:4], str(date)[5:7], str(date)[8:10])
