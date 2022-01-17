@@ -1,6 +1,7 @@
 import re
 from bs4 import BeautifulSoup
 from utils import findElementsBeautifulSoup, stripWhiteSpace
+from database import insertAccommodationInfo
 
 def extractNumberOfAvailableProperties(numberOfAvailablePropertiesString):
     numberOfAvailablePropertiesRegexCheck = re.findall("[0-9]", numberOfAvailablePropertiesString)
@@ -156,6 +157,12 @@ def scrapeHotelInformation (data, offset):
     for i in range(0, len(hotelNames)):
 
         availablePropertiesArray.append(returnScrapedHotelInformation(hotelNames[i],bookingSiteLinks[i],bookingSiteLocationLinks[i],bookingSiteLocationTexts[i],bookingSiteDistances[i],bookingSiteReviews,bookingSiteAvailabilityGroup,bookingSiteAvailabilitySingle,bookingSiteRoomNightAvailability[i],bookingSitePrices[i],bookingSiteRoomLink[i], i))
+    
+    #Send availableProperties Array to db for insertion
+
+    #insertAccommodationInfo(availablePropertiesArray)
+
+
     return {
         "propertiesResult": availablePropertiesArray,
         "offset": offset,

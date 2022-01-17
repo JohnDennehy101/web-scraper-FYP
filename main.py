@@ -17,6 +17,7 @@ from flask_jwt_extended import JWTManager
 from flask_jwt_extended import get_jwt_identity
 from datetime import timedelta
 from string import Template
+from database import insertAccommodationInfo, getExistingAccommodationRecords
 
 app = Flask(__name__)
 
@@ -34,9 +35,6 @@ def login():
     username = request.json.get("username", None)
     password = request.json.get("password", None)
 
-    print(username)
-    print(password)
-
     if username != ACCESS_USERNAME or password != ACCESS_PASSWORD:
         # Correct credentials were not provided
         return jsonify({"msg": "Wrong username or password"}), 401
@@ -53,14 +51,16 @@ def refresh_token():
     access_token= create_access_token(identity=identity, fresh=False)
     return jsonify(access_token=access_token)
 
-@app.route('/accommodation', methods=['GET'])
+@app.route('/accommodation', methods=['POST'])
 @jwt_required(fresh=True)
-def get_accommodation_information():
-    destinationCity = request.args.get('destinationCity')
-    startDate = request.args.get('startDate')
-    endDate = request.args.get('endDate')
-    numberOfPeople = request.args.get('numberOfPeople')
-    numberOfRooms = request.args.get('numberOfRooms')
+def create_accommodation_information():
+    data = request.get_json()
+    destinationCity = data['destinationCity']
+    startDate = data['startDate']
+    endDate = data['endDate']
+    numberOfPeople = data['numberOfPeople']
+    numberOfRooms = data['numberOfRooms']
+    eventId = data['eventId']
 
     startDateDict = returnDateComponents(startDate)
     endDateDict = returnDateComponents(endDate)
@@ -108,6 +108,7 @@ def get_accommodation_information():
     
         #sleep(randint(5,15))
         hotelResultDict = scrapeHotelInformation(hotelHtml, offset) 
+        insertAccommodationInfo(hotelResultDict['propertiesResult'], pageIndex, startDate, endDate, eventId)
         #finalHotelDict.append(hotelResultDict['propertiesResult'])
         finalHotelDict["resultPages"][pageIndex] = hotelResultDict['propertiesResult']
         numberOfProperties = extractNumberOfAvailableProperties(hotelResultDict['numberOfPropertiesString'])
@@ -125,6 +126,21 @@ def get_accommodation_information():
     response = make_response(jsonify(finalHotelDict), 200)
     response.headers["Content-Type"] = "application/json"
     return response
+
+
+@app.route('/accommodation', methods=['GET'])
+@jwt_required(fresh=True)
+def get_accommodation_information():
+    destinationCity = request.args.get('destinationCity')
+    eventId = request.args.get('eventId')
+
+    existingScrapedRecords = getExistingAccommodationRecords(destinationCity, eventId)
+    headers = {"Content-Type": "application/json"}
+    response = make_response(jsonify(existingScrapedRecords), 200)
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+
 
 
 @app.route('/flights', methods=['GET'])
