@@ -226,6 +226,8 @@ def getExistingFlightRecords(fromCity, destinationCity, eventId):
                 "startDate": individualRecord[1],
                 "endDate": individualRecord[2],
                 "departureTime": individualRecord[5],
+                "departureCity": individualRecord[3] ,
+                "arrivalCity": individualRecord[4],
                 "arrivalTime": individualRecord[6],
                 "airport": individualRecord[7],
                 "duration": individualRecord[8],
@@ -235,9 +237,30 @@ def getExistingFlightRecords(fromCity, destinationCity, eventId):
                 "priceTotal": individualRecord[12],
                 "index": individualRecord[15]
             })
+
+            formattedResult = {}
+            availableFlightsDictIndex = 0
+            flightGroup = []
+
+        
+            for i in range(0, len(result)):
+
+                if i % 2 == 0:
+                    flightGroup.append(result[i])
+
+                    if (len(flightGroup) > 1):
+                        formattedResult[availableFlightsDictIndex] = flightGroup
+                        flightGroup = []
+                        availableFlightsDictIndex += 1
+                else:
+                    flightGroup.append(result[i])
+
+                
+
+
             
 
-            return result
+            return formattedResult
 
         else:
             return []
