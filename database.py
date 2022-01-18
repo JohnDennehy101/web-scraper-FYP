@@ -85,18 +85,42 @@ def insertAccommodationInfo(accommodationList, page, startDate, endDate, eventId
     executeListQuery(connection, insertAccommodationQuery, accommodationInfoForDbInsertion)
     
 
+def insertFlightInfo(flightList, startDate, endDate, eventId, fromCity, destinationCity):
+    connection = createDbConnection(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_NAME)
+    flightInfoForDbInsertion = []
+    startDateString = returnStringDateRepresentation(startDate)
+    endDateString = returnStringDateRepresentation(endDate)
 
-def checkDbForExistingRecords(destinationCity, startDate, endDate):
+    for listKey in range(0,len(flightList.keys())):
+        print(flightList[listKey])
+        print(len(flightList[listKey]))
+        for i in range(0, len(flightList[listKey])):
+            print(flightList[listKey][i])
+            individualItem = (startDateString, endDateString, fromCity, destinationCity, flightList[listKey][i]["departureTime"], flightList[listKey][i]["arrivalTime"], flightList[listKey][i]["airport"], flightList[listKey][i]["duration"], flightList[listKey][i]["directFlight"], flightList[listKey][i]["carrier"], flightList[listKey][i]["pricePerPerson"], flightList[listKey][i]["priceTotal"], eventId, listKey)
+            flightInfoForDbInsertion.append(individualItem)
+
+
+    insertFlightQuery = """
+    INSERT INTO flight (startDate, endDate, departureCity, arrivalCity, departureTime, arrivalTime, airport, duration, directFlight, carrier, pricePerPerson, priceTotal, eventId, indexPosition) 
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+
+    executeListQuery(connection, insertFlightQuery, flightInfoForDbInsertion)
+
+
+def checkDbForExistingRecords(destinationCity, startDate, endDate, eventId):
     connection = createDbConnection(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_NAME)
     startDateString = returnStringDateRepresentation(startDate)
     endDateString = returnStringDateRepresentation(endDate)
+
+    #Note that check is made for eventId - optimising this would remove this dependency
 
     timestampMinusADay = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
 
     existingRecordsQuery = """
     SELECT * FROM accommodation
-    WHERE locationTitle = '{}' AND startDate = '{}' AND endDate = '{}' AND timestamp > '{}'
-    """.format(destinationCity, startDateString, endDateString, timestampMinusADay)
+    WHERE locationTitle = '{}' AND startDate = '{}' AND endDate = '{}' AND eventId = '{}' AND timestamp > '{}'
+    """.format(destinationCity, startDateString, endDateString, eventId, timestampMinusADay)
 
     
 
@@ -146,10 +170,87 @@ def checkDbForExistingRecords(destinationCity, startDate, endDate):
         return []
 
 
+
+def checkDbForExistingFlightRecords(fromCity, destinationCity, startDate, endDate, eventId):
+    connection = createDbConnection(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_NAME)
+    startDateString = returnStringDateRepresentation(startDate)
+    endDateString = returnStringDateRepresentation(endDate)
+
+    timestampMinusADay = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+
+     #Note that check is made for eventId - optimising this would remove this dependency
+
+    existingRecordsQuery = """
+    SELECT * FROM flight
+    WHERE departureCity = '{}' AND arrivalCity = '{}' AND startDate = '{}' AND endDate = '{}' AND eventId = '{}' AND timestamp > '{}'
+    """.format(fromCity, destinationCity, startDateString, endDateString, eventId, timestampMinusADay)
+
+    
+
+    dbRecords = readQuery(connection, existingRecordsQuery)
+
+    if len(dbRecords) > 0:
+
+        return True
+
+    else:
+        return False
+
+
+def getExistingFlightRecords(fromCity, destinationCity, eventId):
+    connection = createDbConnection(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_NAME)
+
+    timestampMinusADay = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+
+    existingRecordsQuery = """
+    SELECT * FROM flight
+    WHERE departureCity LIKE('%{}%') AND arrivalCity LIKE ('%{}%') AND eventId = '{}' AND timestamp > '{}'
+    ORDER BY indexPosition ASC
+    """.format(fromCity, destinationCity, eventId, timestampMinusADay)
+
+    
+
+    dbRecords = readQuery(connection, existingRecordsQuery)
+    if dbRecords:
+
+        if len(dbRecords) > 0:
+
+            result = []
+
+
+            for record in range(len(dbRecords)):
+           
+                individualRecord = list(dbRecords[record])
+
+                result.append({
+                "startDate": individualRecord[1],
+                "endDate": individualRecord[2],
+                "departureTime": individualRecord[5],
+                "arrivalTime": individualRecord[6],
+                "airport": individualRecord[7],
+                "duration": individualRecord[8],
+                "directFlight": individualRecord[9],
+                "carrier": individualRecord[10],
+                "pricePerPerson": individualRecord[11],
+                "priceTotal": individualRecord[12],
+                "index": individualRecord[15]
+            })
+            
+
+            return result
+
+        else:
+            return []
+    
+    else:
+        return []
+
+
 def getExistingAccommodationRecords(destinationCity, eventId):
     connection = createDbConnection(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_NAME)
 
     timestampMinusADay = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+
 
     existingRecordsQuery = """
     SELECT * FROM accommodation
@@ -232,10 +333,33 @@ CREATE TABLE accommodation (
 );
 """
 
+createFlightTable = """
+CREATE TABLE flight (
+  flightId int NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (flightId),
+  startDate VARCHAR (100),
+  endDate VARCHAR (100),
+  departureCity VARCHAR(100),
+  arrivalCity VARCHAR(100),
+  departureTime VARCHAR(100) NOT NULL,
+  arrivalTime VARCHAR(100) NOT NULL,
+  airport VARCHAR(100),
+  duration VARCHAR(100),
+  directFlight VARCHAR(100),
+  carrier VARCHAR(200),
+  pricePerPerson VARCHAR(100),
+  priceTotal VARCHAR(100),
+  eventId VARCHAR(200),
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  indexPosition VARCHAR(10)
+);
+"""
+
+
 
 """
 connection = createDbConnection(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_NAME)
-executeQuery(connection, createAccommodationTable)
+executeQuery(connection, createFlightTable)
 #executeListQuery(connection, insertAccommodationQuery, scrapedValues)
 print(connection)
 
