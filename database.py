@@ -117,7 +117,9 @@ def checkDbForExistingRecords(destinationCity, startDate, endDate):
             page = individualRecord[18]
 
             result["resultPages"][page].append({
-             "title": individualRecord[3],
+            "title": individualRecord[3],
+            "startDate": individualRecord[1],
+            "endDate": individualRecord[2],
             "bookingSiteLink": individualRecord[6],
             "bookingSiteDisplayLocationMapLink": individualRecord[5],
             "locationTitle": individualRecord[9],
@@ -152,6 +154,7 @@ def getExistingAccommodationRecords(destinationCity, eventId):
     existingRecordsQuery = """
     SELECT * FROM accommodation
     WHERE locationTitle LIKE('%{}%') AND eventId = '{}' AND timestamp > '{}'
+    ORDER BY page, price ASC
     """.format(destinationCity, eventId, timestampMinusADay)
 
     
@@ -173,7 +176,9 @@ def getExistingAccommodationRecords(destinationCity, eventId):
             page = individualRecord[18]
 
             result["resultPages"][page].append({
-             "title": individualRecord[3],
+            "title": individualRecord[3],
+            "startDate": individualRecord[1],
+            "endDate": individualRecord[2],
             "bookingSiteLink": individualRecord[6],
             "bookingSiteDisplayLocationMapLink": individualRecord[5],
             "locationTitle": individualRecord[9],
