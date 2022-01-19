@@ -171,6 +171,7 @@ def create_flight_information():
     #Still need to map destination ids to dict so that they can be dynamically loaded into url
     flightSiteUrl = Template("https://www.kayak.ie/flights/ORK-PAR/$startDate/$endDate/$numberOfPeopleadults?sort=bestflight_a")
 
+    completeFlightUrl = flightSiteUrl.substitute(startDate=str(startDate)[0:10], endDate=str(endDate)[0:10],numberOfPeopleadults=str(numberOfPeople) + 'adults')
     print(flightSiteUrl.substitute(startDate=str(startDate)[0:10], endDate=str(endDate)[0:10],numberOfPeopleadults=str(numberOfPeople) + 'adults'))
 
     with open('dublin_london_kayak.com.html', 'r') as f:
@@ -180,7 +181,7 @@ def create_flight_information():
     with open("kayak-results.txt", "w") as file:
         file.write(str(flightResultDict))
 
-    insertFlightInfo(flightResultDict, startDate, endDate, eventId, fromCity, destinationCity)
+    insertFlightInfo(flightResultDict, startDate, endDate, eventId, fromCity, destinationCity, completeFlightUrl)
     response = make_response(jsonify(flightResultDict), 200)
     response.headers["Content-Type"] = "application/json"
     return response

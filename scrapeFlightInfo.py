@@ -53,10 +53,19 @@ def scrapeFlightInformation (data):
             flightGroup.append((returnScrapedFlightInformation(flightDepartureTimes[i], flightArrivalTimes[i], airportNames[i], flightDurations[i], directFlightTexts[i], availableFlightPriceInfo)))
 
             if (len(flightGroup) > 1):
+               
                 availableFlightsDict[availableFlightsDictIndex] = flightGroup
                 flightGroup = []
                 availableFlightsDictIndex += 1
         else:
+            index = int(i / 2)
+            availableFlightPriceInfo = returnScrapedFlightPriceInfo(flightCarrierNames[index], flightsPricePerPerson[index], flightsPriceTotals[index])
             flightGroup.append((returnScrapedFlightInformation(flightDepartureTimes[i], flightArrivalTimes[i], airportNames[i], flightDurations[i], directFlightTexts[i], availableFlightPriceInfo)))
+
+            if (len(flightGroup) > 1):
+               
+                availableFlightsDict[availableFlightsDictIndex] = flightGroup
+                flightGroup = []
+                availableFlightsDictIndex += 1
     
     return availableFlightsDict

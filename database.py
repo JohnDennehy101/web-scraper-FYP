@@ -85,7 +85,7 @@ def insertAccommodationInfo(accommodationList, page, startDate, endDate, eventId
     executeListQuery(connection, insertAccommodationQuery, accommodationInfoForDbInsertion)
     
 
-def insertFlightInfo(flightList, startDate, endDate, eventId, fromCity, destinationCity):
+def insertFlightInfo(flightList, startDate, endDate, eventId, fromCity, destinationCity, completeFlightUrl):
     connection = createDbConnection(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_NAME)
     flightInfoForDbInsertion = []
     startDateString = returnStringDateRepresentation(startDate)
@@ -96,13 +96,13 @@ def insertFlightInfo(flightList, startDate, endDate, eventId, fromCity, destinat
         print(len(flightList[listKey]))
         for i in range(0, len(flightList[listKey])):
             print(flightList[listKey][i])
-            individualItem = (startDateString, endDateString, fromCity, destinationCity, flightList[listKey][i]["departureTime"], flightList[listKey][i]["arrivalTime"], flightList[listKey][i]["airport"], flightList[listKey][i]["duration"], flightList[listKey][i]["directFlight"], flightList[listKey][i]["carrier"], flightList[listKey][i]["pricePerPerson"], flightList[listKey][i]["priceTotal"], eventId, listKey)
+            individualItem = (startDateString, endDateString, fromCity, destinationCity, flightList[listKey][i]["departureTime"], flightList[listKey][i]["arrivalTime"], flightList[listKey][i]["airport"], flightList[listKey][i]["duration"], flightList[listKey][i]["directFlight"], flightList[listKey][i]["carrier"], flightList[listKey][i]["pricePerPerson"], flightList[listKey][i]["priceTotal"], eventId, listKey, completeFlightUrl)
             flightInfoForDbInsertion.append(individualItem)
 
 
     insertFlightQuery = """
-    INSERT INTO flight (startDate, endDate, departureCity, arrivalCity, departureTime, arrivalTime, airport, duration, directFlight, carrier, pricePerPerson, priceTotal, eventId, indexPosition) 
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO flight (startDate, endDate, departureCity, arrivalCity, departureTime, arrivalTime, airport, duration, directFlight, carrier, pricePerPerson, priceTotal, eventId, indexPosition, flightUrl) 
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
 
     executeListQuery(connection, insertFlightQuery, flightInfoForDbInsertion)
@@ -189,12 +189,15 @@ def checkDbForExistingFlightRecords(fromCity, destinationCity, startDate, endDat
 
     dbRecords = readQuery(connection, existingRecordsQuery)
 
-    if len(dbRecords) > 0:
+    if dbRecords:
 
-        return True
 
-    else:
-        return False
+        if len(dbRecords) > 0:
+
+            return True
+
+        else:
+            return False
 
 
 def getExistingFlightRecords(fromCity, destinationCity, eventId):
@@ -211,7 +214,7 @@ def getExistingFlightRecords(fromCity, destinationCity, eventId):
     
 
     dbRecords = readQuery(connection, existingRecordsQuery)
-    if dbRecords:
+    if dbRecords is not None:
 
         if len(dbRecords) > 0:
 
@@ -235,7 +238,8 @@ def getExistingFlightRecords(fromCity, destinationCity, eventId):
                 "carrier": individualRecord[10],
                 "pricePerPerson": individualRecord[11],
                 "priceTotal": individualRecord[12],
-                "index": individualRecord[15]
+                "index": individualRecord[15],
+                "flightUrl": individualRecord[16]
             })
 
             formattedResult = {}
@@ -254,6 +258,11 @@ def getExistingFlightRecords(fromCity, destinationCity, eventId):
                         availableFlightsDictIndex += 1
                 else:
                     flightGroup.append(result[i])
+
+                    if (len(flightGroup) > 1):
+                        formattedResult[availableFlightsDictIndex] = flightGroup
+                        flightGroup = []
+                        availableFlightsDictIndex += 1
 
                 
 
@@ -374,7 +383,8 @@ CREATE TABLE flight (
   priceTotal VARCHAR(100),
   eventId VARCHAR(200),
   timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  indexPosition VARCHAR(10)
+  indexPosition VARCHAR(10),
+  flightUrl VARCHAR(500)
 );
 """
 
