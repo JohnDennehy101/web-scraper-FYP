@@ -17,7 +17,7 @@ from flask_jwt_extended import JWTManager
 from flask_jwt_extended import get_jwt_identity
 from datetime import timedelta
 from string import Template
-from database import insertAccommodationInfo, getExistingAccommodationRecords, checkDbForExistingRecords, checkDbForExistingFlightRecords, getExistingFlightRecords, insertFlightInfo
+from database import insertAccommodationInfo, checkDbForExistingRecords, checkDbForExistingFlightRecords, insertFlightInfo
 
 app = Flask(__name__)
 
@@ -51,25 +51,35 @@ def refresh_token():
     access_token= create_access_token(identity=identity, fresh=False)
     return jsonify(access_token=access_token)
 
-@app.route('/accommodation', methods=['POST'])
+@app.route('/accommodation', methods=['GET'])
 @jwt_required(fresh=True)
 def create_accommodation_information():
+    """
     data = request.get_json()
     destinationCity = data['destinationCity']
     startDate = data['startDate']
     endDate = data['endDate']
     numberOfPeople = data['numberOfPeople']
     numberOfRooms = data['numberOfRooms']
-    eventId = data['eventId']
+    #eventId = data['eventId']
+    """
+
+    destinationCity = request.args.get('destinationCity')
+    startDate = request.args.get('startDate')
+    endDate = request.args.get('endDate')
+    numberOfPeople = request.args.get('numberOfPeople')
+    numberOfRooms = request.args.get('numberOfRooms')
+    #eventId = request.args.get('eventId')
 
     startDateDict = returnDateComponents(startDate)
     endDateDict = returnDateComponents(endDate)
 
-    existingScrapedRecords = checkDbForExistingRecords(destinationCity, startDate, endDate, eventId)
+    existingScrapedRecords = checkDbForExistingRecords(destinationCity, startDate, endDate)
 
+    if existingScrapedRecords:
 
-    if len(existingScrapedRecords) > 0:
-        return make_response(jsonify(existingScrapedRecords), 200)
+        if len(existingScrapedRecords) > 0:
+            return make_response(jsonify(existingScrapedRecords), 200)
 
     additionalPage = True
     offset = 0
@@ -108,7 +118,7 @@ def create_accommodation_information():
     
         #sleep(randint(5,15))
         hotelResultDict = scrapeHotelInformation(hotelHtml, offset) 
-        insertAccommodationInfo(hotelResultDict['propertiesResult'], pageIndex, startDate, endDate, eventId)
+        insertAccommodationInfo(hotelResultDict['propertiesResult'], pageIndex, startDate, endDate)
         #finalHotelDict.append(hotelResultDict['propertiesResult'])
         finalHotelDict["resultPages"][pageIndex] = hotelResultDict['propertiesResult']
         numberOfProperties = extractNumberOfAvailableProperties(hotelResultDict['numberOfPropertiesString'])
@@ -128,6 +138,7 @@ def create_accommodation_information():
     return response
 
 
+"""
 @app.route('/accommodation', methods=['GET'])
 @jwt_required(fresh=True)
 def get_accommodation_information():
@@ -139,28 +150,36 @@ def get_accommodation_information():
     response = make_response(jsonify(existingScrapedRecords), 200)
     response.headers["Content-Type"] = "application/json"
     return response
+"""
 
 
 
 
-@app.route('/flights', methods=['POST'])
+@app.route('/flights', methods=['GET'])
 @jwt_required(fresh=True)
 def create_flight_information():
-
+    """
     data = request.get_json()
     fromCity = data['fromCity']
     destinationCity = data['destinationCity']
     startDate = data['startDate']
     endDate = data['endDate']
     numberOfPeople = data['numberOfPeople']
-    eventId = data['eventId']
+    #eventId = data['eventId']
+    """
+
+    fromCity = request.args.get('fromCity')
+    destinationCity = request.args.get('destinationCity')
+    startDate = request.args.get('startDate')
+    endDate = request.args.get('endDate')
+    numberOfPeople = request.args.get('numberOfPeople')
 
 
-    existingScrapedRecords = checkDbForExistingFlightRecords(fromCity, destinationCity, startDate, endDate, eventId)
+    existingScrapedRecords = checkDbForExistingFlightRecords(fromCity, destinationCity, startDate, endDate)
 
 
     if existingScrapedRecords:
-        return make_response("Already Created", 200)
+        return make_response(jsonify(existingScrapedRecords), 200)
 
     """
     flightHtml = makeWebScrapeRequest(flightSiteUrl)
@@ -181,12 +200,13 @@ def create_flight_information():
     with open("kayak-results.txt", "w") as file:
         file.write(str(flightResultDict))
 
-    insertFlightInfo(flightResultDict, startDate, endDate, eventId, fromCity, destinationCity, completeFlightUrl)
+    insertFlightInfo(flightResultDict, startDate, endDate, fromCity, destinationCity, completeFlightUrl)
     response = make_response(jsonify(flightResultDict), 200)
     response.headers["Content-Type"] = "application/json"
     return response
 
 
+"""
 @app.route('/flights', methods=['GET'])
 @jwt_required(fresh=True)
 def get_flight_information():
@@ -200,6 +220,6 @@ def get_flight_information():
     response = make_response(jsonify(existingScrapedRecords), 200)
     response.headers["Content-Type"] = "application/json"
     return response
-
+"""
 
 
