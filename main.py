@@ -18,6 +18,7 @@ from flask_jwt_extended import get_jwt_identity
 from datetime import timedelta
 from string import Template
 from database import insertAccommodationInfo, checkDbForExistingRecords, checkDbForExistingFlightRecords, insertFlightInfo
+from enums import KayakCityCodes
 
 app = Flask(__name__)
 
@@ -54,22 +55,12 @@ def refresh_token():
 @app.route('/accommodation', methods=['GET'])
 @jwt_required(fresh=True)
 def create_accommodation_information():
-    """
-    data = request.get_json()
-    destinationCity = data['destinationCity']
-    startDate = data['startDate']
-    endDate = data['endDate']
-    numberOfPeople = data['numberOfPeople']
-    numberOfRooms = data['numberOfRooms']
-    #eventId = data['eventId']
-    """
 
     destinationCity = request.args.get('destinationCity')
     startDate = request.args.get('startDate')
     endDate = request.args.get('endDate')
     numberOfPeople = request.args.get('numberOfPeople')
     numberOfRooms = request.args.get('numberOfRooms')
-    #eventId = request.args.get('eventId')
 
     startDateDict = returnDateComponents(startDate)
     endDateDict = returnDateComponents(endDate)
@@ -138,41 +129,21 @@ def create_accommodation_information():
     return response
 
 
-"""
-@app.route('/accommodation', methods=['GET'])
-@jwt_required(fresh=True)
-def get_accommodation_information():
-    destinationCity = request.args.get('destinationCity')
-    eventId = request.args.get('eventId')
-
-    existingScrapedRecords = getExistingAccommodationRecords(destinationCity, eventId)
-    headers = {"Content-Type": "application/json"}
-    response = make_response(jsonify(existingScrapedRecords), 200)
-    response.headers["Content-Type"] = "application/json"
-    return response
-"""
-
-
 
 
 @app.route('/flights', methods=['GET'])
 @jwt_required(fresh=True)
 def create_flight_information():
-    """
-    data = request.get_json()
-    fromCity = data['fromCity']
-    destinationCity = data['destinationCity']
-    startDate = data['startDate']
-    endDate = data['endDate']
-    numberOfPeople = data['numberOfPeople']
-    #eventId = data['eventId']
-    """
 
     fromCity = request.args.get('fromCity')
     destinationCity = request.args.get('destinationCity')
     startDate = request.args.get('startDate')
     endDate = request.args.get('endDate')
     numberOfPeople = request.args.get('numberOfPeople')
+
+  
+    departureCityPrefix = KayakCityCodes[fromCity].value
+    arrivalCityPrefix = KayakCityCodes[destinationCity].value
 
 
     existingScrapedRecords = checkDbForExistingFlightRecords(fromCity, destinationCity, startDate, endDate)
@@ -188,10 +159,10 @@ def create_flight_information():
 
     flightHtml = None
     #Still need to map destination ids to dict so that they can be dynamically loaded into url
-    flightSiteUrl = Template("https://www.kayak.ie/flights/ORK-PAR/$startDate/$endDate/$numberOfPeopleadults?sort=bestflight_a")
+    flightSiteUrl = Template("https://www.kayak.ie/flights/$departureCityPrefix-$arrivalCityPrefix/$startDate/$endDate/$numberOfPeopleadults?sort=bestflight_a")
 
-    completeFlightUrl = flightSiteUrl.substitute(startDate=str(startDate)[0:10], endDate=str(endDate)[0:10],numberOfPeopleadults=str(numberOfPeople) + 'adults')
-    print(flightSiteUrl.substitute(startDate=str(startDate)[0:10], endDate=str(endDate)[0:10],numberOfPeopleadults=str(numberOfPeople) + 'adults'))
+    completeFlightUrl = flightSiteUrl.substitute(departureCityPrefix=str(departureCityPrefix), arrivalCityPrefix=str(arrivalCityPrefix), startDate=str(startDate)[0:10], endDate=str(endDate)[0:10],numberOfPeopleadults=str(numberOfPeople) + 'adults')
+ 
 
     with open('dublin_london_kayak.com.html', 'r') as f:
         contents = f.read()
@@ -205,21 +176,5 @@ def create_flight_information():
     response.headers["Content-Type"] = "application/json"
     return response
 
-
-"""
-@app.route('/flights', methods=['GET'])
-@jwt_required(fresh=True)
-def get_flight_information():
-    fromCity = request.args.get('fromCity')
-    destinationCity = request.args.get('destinationCity')
-    eventId = request.args.get('eventId')
-    endDate = request.args.get('endDate')
-
-    existingScrapedRecords = getExistingFlightRecords(fromCity, destinationCity, eventId)
-    headers = {"Content-Type": "application/json"}
-    response = make_response(jsonify(existingScrapedRecords), 200)
-    response.headers["Content-Type"] = "application/json"
-    return response
-"""
 
 
