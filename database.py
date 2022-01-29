@@ -27,6 +27,62 @@ def createDbConnection(hostName, userName, userPassword, dbName):
 
     return connection
 
+def bootstrapDbOnInitialLoad():
+    connection = createDbConnection(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_NAME)
+    
+    print(connection)
+
+    createDatabaseQuery = "CREATE DATABASE web_scraped_information"
+
+    createFlightTable = """
+    CREATE TABLE flight (
+    flightId int NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (flightId),
+    startDate VARCHAR (100),
+    endDate VARCHAR (100),
+    departureCity VARCHAR(100),
+    arrivalCity VARCHAR(100),
+    departureTime VARCHAR(100) NOT NULL,
+    arrivalTime VARCHAR(100) NOT NULL,
+    airport VARCHAR(100),
+    duration VARCHAR(100),
+    directFlight VARCHAR(100),
+    carrier VARCHAR(200),
+    pricePerPerson VARCHAR(100),
+    priceTotal VARCHAR(100),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    indexPosition VARCHAR(10),
+    flightUrl VARCHAR(500)
+    );
+    """
+
+    createFlightTable = """
+    CREATE TABLE flight (
+    flightId int NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (flightId),
+    startDate VARCHAR (100),
+    endDate VARCHAR (100),
+    departureCity VARCHAR(100),
+    arrivalCity VARCHAR(100),
+    departureTime VARCHAR(100) NOT NULL,
+    arrivalTime VARCHAR(100) NOT NULL,
+    airport VARCHAR(100),
+    duration VARCHAR(100),
+    directFlight VARCHAR(100),
+    carrier VARCHAR(200),
+    pricePerPerson VARCHAR(100),
+    priceTotal VARCHAR(100),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    indexPosition VARCHAR(10),
+    flightUrl VARCHAR(500)
+    );
+    """
+    createDb(connection, createDatabaseQuery)
+    executeQuery(connection, createAccommodationTable)
+    executeQuery(connection, createFlightTable)
+
+    
+
 
 def createDb(connection, query):
     cursor = connection.cursor()

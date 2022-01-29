@@ -17,7 +17,7 @@ from flask_jwt_extended import JWTManager
 from flask_jwt_extended import get_jwt_identity
 from datetime import timedelta
 from string import Template
-from database import insertAccommodationInfo, checkDbForExistingRecords, checkDbForExistingFlightRecords, insertFlightInfo
+from database import insertAccommodationInfo, checkDbForExistingRecords, checkDbForExistingFlightRecords, insertFlightInfo, bootstrapDbOnInitialLoad
 from enums import KayakCityCodes
 
 app = Flask(__name__)
@@ -30,6 +30,10 @@ app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
 jwt = JWTManager(app)
+
+@app.before_first_request
+def setup():
+     bootstrapDbOnInitialLoad()
 
 @app.route("/login", methods=["POST"])
 def login():
