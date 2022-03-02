@@ -37,8 +37,12 @@ def setup():
 
 @app.route("/login", methods=["POST"])
 def login():
-    username = request.json.get("username", None)
-    password = request.json.get("password", None)
+    try:
+        username = request.json.get("username", None)
+        password = request.json.get("password", None)
+    
+    except:
+        return jsonify({"msg": "Must provide username and password"}), 400
 
     if username != ACCESS_USERNAME or password != ACCESS_PASSWORD:
         # Correct credentials were not provided
@@ -60,11 +64,16 @@ def refresh_token():
 @jwt_required(fresh=True)
 def create_accommodation_information():
 
+
+
     destinationCity = request.args.get('destinationCity')
     startDate = request.args.get('startDate')
     endDate = request.args.get('endDate')
     numberOfPeople = request.args.get('numberOfPeople')
     numberOfRooms = request.args.get('numberOfRooms')
+
+    if not destinationCity or not startDate or not endDate or not numberOfPeople or not numberOfRooms:
+        return jsonify({"msg": "Must provide valid values for each query parameter"}), 400
 
     startDateDict = returnDateComponents(startDate)
     endDateDict = returnDateComponents(endDate)
@@ -86,7 +95,7 @@ def create_accommodation_information():
         #Still need to map destination ids to dict so that they can be dynamically loaded into url
         hotelSiteUrl = Template("https://www.booking.com/searchresults.en-gb.html?aid=304142&sb_price_type%3Dtotal%3Bsrpvid%3Dff4c997b5ad30070%26%3B=&ss=$destinationCity&is_ski_area=0&ssne=$destinationCity&ssne_untouched=$destinationCity&dest_id=-1503733&dest_type=city&checkin_year=$checkinYear&checkin_month=$checkinMonth&checkin_monthday=$checkinMonthDay&checkout_year=$checkoutYear&checkout_month=$checkoutMonth&checkout_monthday=$checkoutMonthDay&group_adults=$numberOfPeople&group_children=0&no_rooms=1&b_h4u_keep_filters=&from_sf=1")
 
-        hotelSiteUrl.substitute(destinationCity=destinationCity, checkinYear=startDateDict['year'], checkinMonth=startDateDict['month'], checkinMonthDay=startDateDict['day'], checkoutYear=endDateDict['year'], checkoutMonth=endDateDict['month'], checkoutMonthDay=endDateDict['day'], numberOfPeople=numberOfPeople)
+        finalUrl = hotelSiteUrl.substitute(destinationCity=destinationCity, checkinYear=startDateDict['year'], checkinMonth=startDateDict['month'], checkinMonthDay=startDateDict['day'], checkoutYear=endDateDict['year'], checkoutMonth=endDateDict['month'], checkoutMonthDay=endDateDict['day'], numberOfPeople=numberOfPeople)
 
         pageIndex = 1
     
@@ -98,15 +107,15 @@ def create_accommodation_information():
         print(hotelSiteUrl.substitute(destinationCity=destinationCity, checkinYear=startDateDict['year'], checkinMonth=startDateDict['month'], checkinMonthDay=startDateDict['day'], checkoutYear=endDateDict['year'], checkoutMonth=endDateDict['month'], checkoutMonthDay=endDateDict['day'], numberOfPeople=numberOfPeople))
         print(offset)
         hotelHtml = None
-        #flightHtml = makeWebScrapeRequest(flightSiteUrl)
-        #hotelHtml = makeWebScrapeRequest(hotelSiteUrl)
+        hotelHtml = makeWebScrapeRequest(finalUrl)
    
 
     
-    
+        """
         with open('limerick_booking.com.html', 'r') as f:
             contents = f.read()
             hotelHtml = contents
+        """
     
  
         
@@ -145,9 +154,12 @@ def create_flight_information():
     endDate = request.args.get('endDate')
     numberOfPeople = request.args.get('numberOfPeople')
 
+    if not fromCity or not destinationCity or not startDate or not endDate or not numberOfPeople:
+        return jsonify({"msg": "Must provide valid values for each query parameter"}), 400
+
   
-    departureCityPrefix = KayakCityCodes[fromCity].value
-    arrivalCityPrefix = KayakCityCodes[destinationCity].value
+    departureCityPrefix = KayakCityCodes[fromCity]
+    arrivalCityPrefix = KayakCityCodes[destinationCity]
 
 
     existingScrapedRecords = checkDbForExistingFlightRecords(fromCity, destinationCity, startDate, endDate)
@@ -156,21 +168,25 @@ def create_flight_information():
     if existingScrapedRecords:
         return make_response(jsonify(existingScrapedRecords), 200)
 
-    """
-    flightHtml = makeWebScrapeRequest(flightSiteUrl)
-    flightResultDict = scrapeFlightInformation(flightHtml)
-    """
+    
+    
+    
 
-    flightHtml = None
+    #flightHtml = None
     #Still need to map destination ids to dict so that they can be dynamically loaded into url
     flightSiteUrl = Template("https://www.kayak.ie/flights/$departureCityPrefix-$arrivalCityPrefix/$startDate/$endDate/$numberOfPeopleadults?sort=bestflight_a")
 
     completeFlightUrl = flightSiteUrl.substitute(departureCityPrefix=str(departureCityPrefix), arrivalCityPrefix=str(arrivalCityPrefix), startDate=str(startDate)[0:10], endDate=str(endDate)[0:10],numberOfPeopleadults=str(numberOfPeople) + 'adults')
- 
 
+
+    flightHtml = makeWebScrapeRequest(completeFlightUrl)
+    flightResultDict = scrapeFlightInformation(flightHtml)
+ 
+    """
     with open('dublin_london_kayak.com.html', 'r') as f:
         contents = f.read()
         flightHtml = contents
+    """
     flightResultDict = scrapeFlightInformation(flightHtml)
     with open("kayak-results.txt", "w") as file:
         file.write(str(flightResultDict))
