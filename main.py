@@ -18,7 +18,7 @@ from flask_jwt_extended import get_jwt_identity
 from datetime import timedelta
 from string import Template
 from database import insertAccommodationInfo, checkDbForExistingRecords, checkDbForExistingFlightRecords, insertFlightInfo, bootstrapDbOnInitialLoad
-from enums import KayakCityCodes
+from enums import KayakCityCodes, BookingCityDestinationCodes
 
 app = Flask(__name__)
 
@@ -77,6 +77,9 @@ def create_accommodation_information():
 
     startDateDict = returnDateComponents(startDate)
     endDateDict = returnDateComponents(endDate)
+    cityDestinationId = BookingCityDestinationCodes[destinationCity]
+    print("ID")
+    print(cityDestinationId)
 
     existingScrapedRecords = checkDbForExistingRecords(destinationCity, startDate, endDate)
 
@@ -91,11 +94,12 @@ def create_accommodation_information():
     finalHotelDict = {"resultPages": {
     }}
 
-    while additionalPage:
-        #Still need to map destination ids to dict so that they can be dynamically loaded into url
-        hotelSiteUrl = Template("https://www.booking.com/searchresults.en-gb.html?aid=304142&sb_price_type%3Dtotal%3Bsrpvid%3Dff4c997b5ad30070%26%3B=&ss=$destinationCity&is_ski_area=0&ssne=$destinationCity&ssne_untouched=$destinationCity&dest_id=-1503733&dest_type=city&checkin_year=$checkinYear&checkin_month=$checkinMonth&checkin_monthday=$checkinMonthDay&checkout_year=$checkoutYear&checkout_month=$checkoutMonth&checkout_monthday=$checkoutMonthDay&group_adults=$numberOfPeople&group_children=0&no_rooms=1&b_h4u_keep_filters=&from_sf=1")
+    
 
-        finalUrl = hotelSiteUrl.substitute(destinationCity=destinationCity, checkinYear=startDateDict['year'], checkinMonth=startDateDict['month'], checkinMonthDay=startDateDict['day'], checkoutYear=endDateDict['year'], checkoutMonth=endDateDict['month'], checkoutMonthDay=endDateDict['day'], numberOfPeople=numberOfPeople)
+    while additionalPage:
+        hotelSiteUrl = Template("https://www.booking.com/searchresults.en-gb.html?aid=304142&sb_price_type%3Dtotal%3Bsrpvid%3Dff4c997b5ad30070%26%3B=&ss=$destinationCity&is_ski_area=0&ssne=$destinationCity&ssne_untouched=$destinationCity&dest_id=$destinationId&dest_type=city&checkin_year=$checkinYear&checkin_month=$checkinMonth&checkin_monthday=$checkinMonthDay&checkout_year=$checkoutYear&checkout_month=$checkoutMonth&checkout_monthday=$checkoutMonthDay&group_adults=$numberOfPeople&group_children=0&no_rooms=1&b_h4u_keep_filters=&from_sf=1")
+
+        finalUrl = hotelSiteUrl.substitute(destinationCity=destinationCity, destinationId=cityDestinationId, checkinYear=startDateDict['year'], checkinMonth=startDateDict['month'], checkinMonthDay=startDateDict['day'], checkoutYear=endDateDict['year'], checkoutMonth=endDateDict['month'], checkoutMonthDay=endDateDict['day'], numberOfPeople=numberOfPeople)
 
         pageIndex = 1
     
@@ -103,9 +107,6 @@ def create_accommodation_information():
             offsetQueryParameter = "&offset={quantity}".format(quantity=offset)
             hotelSiteUrl += offsetQueryParameter
     
-
-        print(hotelSiteUrl.substitute(destinationCity=destinationCity, checkinYear=startDateDict['year'], checkinMonth=startDateDict['month'], checkinMonthDay=startDateDict['day'], checkoutYear=endDateDict['year'], checkoutMonth=endDateDict['month'], checkoutMonthDay=endDateDict['day'], numberOfPeople=numberOfPeople))
-        print(offset)
         hotelHtml = None
         hotelHtml = makeWebScrapeRequest(finalUrl)
    
