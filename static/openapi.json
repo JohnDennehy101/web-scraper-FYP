@@ -1,0 +1,368 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Web-scraping Flask API",
+    "description": "An API to scrape accommodation results from booking.com and flight results from kayak.com"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:5000",
+      "description": "Local Server (when running locally)"
+    },
+    {
+      "url": "https://group-activity-planning-flask.herokuapp.com",
+      "description": "Production server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Access token is missing or invalid"
+      }
+    }
+  },
+  "paths": {
+    "/login": {
+      "post": {
+        "description": "Returns JWT if valid credentials provided",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "example": {
+                  "username": "testemail@gmail.com",
+                  "password": "PutPasswordHere"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid JWT that can be used to access other routes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string"
+                    },
+                    "refresh_token": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+                    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Password and username must be provided in body of request"
+          },
+          "401": {
+            "description": "Valid password and valid username must be provided"
+          }
+        }
+      }
+    },
+    "/refresh": {
+      "post": {
+        "description": "Returns new jwt token if valid refresh token provided (provide in header)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Valid JWT that can be used to access other routes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Valid Refresh Token must be provided"
+          }
+        }
+      }
+    },
+    "/accommodation": {
+      "get": {
+        "description": "Returns scraped accommodation results from booking.com if valid payload (and valid JWT provided in header)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "destinationCity",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "City name for which accommodation records should be scraped",
+            "example": "Cork"
+          },
+          {
+            "in": "query",
+            "name": "startDate",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "String representation of trip start date which should be used when scraping",
+            "example": "2022-03-30"
+          },
+          {
+            "in": "query",
+            "name": "endDate",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "String representation of trip end date which should be used when scraping",
+            "example": "2022-03-30"
+          },
+          {
+            "in": "query",
+            "name": "numberOfPeople",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "String representation of number of people looking for accommodation",
+            "example": "2"
+          },
+          {
+            "in": "query",
+            "name": "numberOfRooms",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "String representation of number of rooms that should be searched for",
+            "example": "1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scraped accommodation info from booking.com",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result_pages": {
+                      "type": "object",
+                      "properties": {
+                        "1": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "example": {
+                    "result_pages": {
+                      "1": [
+                        {
+                          "bookingPreviewLink": "https://www.booking.com/hotel/ie/jurys-inn-cork.en-gb.html?aid=304142&ucfs=1&arphpl=1&checkin=2022-04-14&checkout=2022-04-16&dest_id=-1501986&dest_type=city&group_adults=2&req_adults=2&no_rooms=1&group_children=0&req_children=0&hpos=1&hapos=1&sr_order=popularity&srpvid=aac2855551e20178&srepoch=1647975469&all_sr_blocks=4030824_266278760_0_0_0&highlighted_blocks=4030824_266278760_0_0_0&matching_block_id=4030824_266278760_0_0_0&sr_pri_blocks=4030824_266278760_0_0_0__44400&from_sustainable_property_sr=1&from=searchresults#hotelTmpl",
+                          "bookingSiteDisplayLocationMapLink": "https://www.booking.com/hotel/ie/jurys-inn-cork.en-gb.html?aid=304142&ucfs=1&arphpl=1&checkin=2022-04-14&checkout=2022-04-16&dest_id=-1501986&dest_type=city&group_adults=2&req_adults=2&no_rooms=1&group_children=0&req_children=0&hpos=1&hapos=1&sr_order=popularity&srpvid=aac2855551e20178&srepoch=1647975469&all_sr_blocks=4030824_266278760_0_0_0&highlighted_blocks=4030824_266278760_0_0_0&matching_block_id=4030824_266278760_0_0_0&sr_pri_blocks=4030824_266278760_0_0_0__44400&from_sustainable_property_sr=1&from=searchresults&map=1",
+                          "bookingSiteLink": "https://www.booking.com/hotel/ie/jurys-inn-cork.en-gb.html?aid=304142&ucfs=1&arphpl=1&checkin=2022-04-14&checkout=2022-04-16&dest_id=-1501986&dest_type=city&group_adults=2&req_adults=2&no_rooms=1&group_children=0&req_children=0&hpos=1&hapos=1&sr_order=popularity&srpvid=aac2855551e20178&srepoch=1647975469&all_sr_blocks=4030824_266278760_0_0_0&highlighted_blocks=4030824_266278760_0_0_0&matching_block_id=4030824_266278760_0_0_0&sr_pri_blocks=4030824_266278760_0_0_0__44400&from_sustainable_property_sr=1&from=searchresults#hotelTmpl",
+                          "freeCancellationText": "FREE cancellation • No prepayment needed",
+                          "locationDistance": "0.6 km from centre",
+                          "locationTitle": "Cork",
+                          "numberOfBedsRecommendedBooking": "2 beds (1 single, 1 double)",
+                          "numberOfNightsAndGuests": "2 nights, 2 adults",
+                          "numberOfRoomsRecommendedBooking": "Standard Double or Twin Room",
+                          "price": "€ 444",
+                          "ratingScore": "8.1",
+                          "ratingScoreCategory": "Very good",
+                          "reviewQuantity": "4,974 reviews",
+                          "roomTypeRecommendedBooking": "Standard Double or Twin Room",
+                          "title": "Jurys Inn Cork"
+                        },
+                        {
+                          "bookingPreviewLink": "https://www.booking.com/hotel/ie/rochestownpark.en-gb.html?aid=304142&ucfs=1&arphpl=1&checkin=2022-04-14&checkout=2022-04-16&dest_id=-1501986&dest_type=city&group_adults=2&req_adults=2&no_rooms=1&group_children=0&req_children=0&hpos=2&hapos=2&sr_order=popularity&srpvid=aac2855551e20178&srepoch=1647975469&all_sr_blocks=96421_348170983_0_2_0&highlighted_blocks=96421_348170983_0_2_0&matching_block_id=96421_348170983_0_2_0&sr_pri_blocks=96421_348170983_0_2_0__32800&from=searchresults#hotelTmpl",
+                          "bookingSiteDisplayLocationMapLink": "https://www.booking.com/hotel/ie/rochestownpark.en-gb.html?aid=304142&ucfs=1&arphpl=1&checkin=2022-04-14&checkout=2022-04-16&dest_id=-1501986&dest_type=city&group_adults=2&req_adults=2&no_rooms=1&group_children=0&req_children=0&hpos=2&hapos=2&sr_order=popularity&srpvid=aac2855551e20178&srepoch=1647975469&all_sr_blocks=96421_348170983_0_2_0&highlighted_blocks=96421_348170983_0_2_0&matching_block_id=96421_348170983_0_2_0&sr_pri_blocks=96421_348170983_0_2_0__32800&from=searchresults&map=1",
+                          "bookingSiteLink": "https://www.booking.com/hotel/ie/rochestownpark.en-gb.html?aid=304142&ucfs=1&arphpl=1&checkin=2022-04-14&checkout=2022-04-16&dest_id=-1501986&dest_type=city&group_adults=2&req_adults=2&no_rooms=1&group_children=0&req_children=0&hpos=2&hapos=2&sr_order=popularity&srpvid=aac2855551e20178&srepoch=1647975469&all_sr_blocks=96421_348170983_0_2_0&highlighted_blocks=96421_348170983_0_2_0&matching_block_id=96421_348170983_0_2_0&sr_pri_blocks=96421_348170983_0_2_0__32800&from=searchresults#hotelTmpl",
+                          "freeCancellationText": "FREE cancellation • No prepayment needed",
+                          "locationDistance": "3.9 km from centre",
+                          "locationTitle": "Cork",
+                          "numberOfBedsRecommendedBooking": "1 double bed",
+                          "numberOfNightsAndGuests": "2 nights, 2 adults",
+                          "numberOfRoomsRecommendedBooking": "Double Room",
+                          "price": "€ 328",
+                          "ratingScore": "7.9",
+                          "ratingScoreCategory": "Good",
+                          "reviewQuantity": "3,255 reviews",
+                          "roomTypeRecommendedBooking": "Double Room",
+                          "title": "Rochestown Park Hotel"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Valid values must be provided for each query parameter"
+          },
+          "401": {
+            "description": "Valid Refresh Token must be provided"
+          }
+        }
+      }
+    },
+    "/flights": {
+      "get": {
+        "description": "Returns scraped flight results from kayak.com if valid payload (and valid JWT provided in header)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "fromCity",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Flight departure city",
+            "example": "Dublin"
+          },
+          {
+            "in": "query",
+            "name": "destinationCity",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Flight arrival city",
+            "example": "London"
+          },
+          {
+            "in": "query",
+            "name": "startDate",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "String representation of trip start date which should be used when scraping",
+            "example": "2022-03-30"
+          },
+          {
+            "in": "query",
+            "name": "endDate",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "String representation of trip end date which should be used when scraping",
+            "example": "2022-03-30"
+          },
+          {
+            "in": "query",
+            "name": "numberOfPeople",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "String representation of number of people looking for accommodation",
+            "example": "2"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scraped flight info from kayak.com",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "0": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "example": {
+                    "0": [
+                      {
+                        "airport": "ORK\nCork",
+                        "arrivalTime": "21:45",
+                        "carrier": "British Airways",
+                        "departureTime": "20:30",
+                        "directFlight": "direct",
+                        "duration": "1h 15m",
+                        "pricePerPerson": "€123",
+                        "priceTotal": "€246 total"
+                      },
+                      {
+                        "airport": "LHR\nHeathrow",
+                        "arrivalTime": "15:10",
+                        "carrier": "British Airways",
+                        "departureTime": "13:50",
+                        "directFlight": "direct",
+                        "duration": "1h 20m",
+                        "pricePerPerson": "€123",
+                        "priceTotal": "€246 total"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Valid values must be provided for each query parameter"
+          },
+          "401": {
+            "description": "Valid Refresh Token must be provided"
+          }
+        }
+      }
+    }
+  }
+}

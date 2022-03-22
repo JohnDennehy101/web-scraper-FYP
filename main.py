@@ -8,7 +8,7 @@ from scrapeAccommodationInfo import extractNumberOfAvailableProperties, stripWhi
 from scrapeFlightInfo import scrapeFlightInformation
 from database import checkDbForExistingRecords
 from utils import makeWebScrapeRequest, returnDateComponents
-from flask import Flask, make_response, request, jsonify
+from flask import Flask, make_response, render_template, request, jsonify
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt
 from flask_jwt_extended import jwt_required
@@ -78,8 +78,6 @@ def create_accommodation_information():
     startDateDict = returnDateComponents(startDate)
     endDateDict = returnDateComponents(endDate)
     cityDestinationId = BookingCityDestinationCodes[destinationCity]
-    print("ID")
-    print(cityDestinationId)
 
     existingScrapedRecords = checkDbForExistingRecords(destinationCity, startDate, endDate)
 
@@ -179,7 +177,7 @@ def create_flight_information():
 
     completeFlightUrl = flightSiteUrl.substitute(departureCityPrefix=str(departureCityPrefix), arrivalCityPrefix=str(arrivalCityPrefix), startDate=str(startDate)[0:10], endDate=str(endDate)[0:10],numberOfPeopleadults=str(numberOfPeople) + 'adults')
 
-
+    print(completeFlightUrl)
     flightHtml = makeWebScrapeRequest(completeFlightUrl)
     flightResultDict = scrapeFlightInformation(flightHtml)
  
@@ -196,6 +194,12 @@ def create_flight_information():
     response = make_response(jsonify(flightResultDict), 200)
     response.headers["Content-Type"] = "application/json"
     return response
+
+
+@app.route('/api/docs')
+def get_docs():
+    print('sending docs')
+    return render_template('swaggerui.html')
 
 
 
