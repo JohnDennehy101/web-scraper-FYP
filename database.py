@@ -148,10 +148,7 @@ def insertFlightInfo(flightList, startDate, endDate, fromCity, destinationCity, 
     endDateString = returnStringDateRepresentation(endDate)
 
     for listKey in range(0,len(flightList.keys())):
-        print(flightList[listKey])
-        print(len(flightList[listKey]))
         for i in range(0, len(flightList[listKey])):
-            print(flightList[listKey][i])
             individualItem = (startDateString, endDateString, fromCity, destinationCity, flightList[listKey][i]["departureTime"], flightList[listKey][i]["arrivalTime"], flightList[listKey][i]["airport"], flightList[listKey][i]["duration"], flightList[listKey][i]["directFlight"], flightList[listKey][i]["carrier"], flightList[listKey][i]["pricePerPerson"], flightList[listKey][i]["priceTotal"], listKey, completeFlightUrl)
             flightInfoForDbInsertion.append(individualItem)
 

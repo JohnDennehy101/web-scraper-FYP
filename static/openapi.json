@@ -308,7 +308,7 @@
               "type": "string"
             },
             "required": true,
-            "description": "String representation of number of people looking for accommodation",
+            "description": "String representation of number of people looking for flights",
             "example": "2"
           }
         ],

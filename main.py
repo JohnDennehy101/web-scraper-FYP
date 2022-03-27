@@ -164,14 +164,11 @@ def create_flight_information():
     existingScrapedRecords = checkDbForExistingFlightRecords(fromCity, destinationCity, startDate, endDate)
 
 
-    if existingScrapedRecords:
+    if existingScrapedRecords and "1" in existingScrapedRecords:
         return make_response(jsonify(existingScrapedRecords), 200)
 
     
-    
-    
-
-    #flightHtml = None
+    flightHtml = None
     #Still need to map destination ids to dict so that they can be dynamically loaded into url
     flightSiteUrl = Template("https://www.kayak.ie/flights/$departureCityPrefix-$arrivalCityPrefix/$startDate/$endDate/$numberOfPeopleadults?sort=bestflight_a")
 
@@ -179,14 +176,24 @@ def create_flight_information():
 
     print(completeFlightUrl)
     flightHtml = makeWebScrapeRequest(completeFlightUrl)
-    flightResultDict = scrapeFlightInformation(flightHtml)
  
     """
-    with open('dublin_london_kayak.com.html', 'r') as f:
+    with open('dublin_london_kayak_2_attempt_2.com.html', 'r') as f:
         contents = f.read()
         flightHtml = contents
     """
+
     flightResultDict = scrapeFlightInformation(flightHtml)
+
+    sleep(5)
+    flightHtml = makeWebScrapeRequest(completeFlightUrl)
+    flightResultDict = scrapeFlightInformation(flightHtml)
+
+    sleep(8)
+    flightHtml = makeWebScrapeRequest(completeFlightUrl)
+    flightResultDict = scrapeFlightInformation(flightHtml)
+
+
     with open("kayak-results.txt", "w") as file:
         file.write(str(flightResultDict))
 

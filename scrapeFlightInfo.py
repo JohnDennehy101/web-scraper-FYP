@@ -6,7 +6,7 @@ def returnScrapedFlightInformation(flightDepartureTime, flightArrivalTime, airpo
             "departureTime": stripWhiteSpace(flightDepartureTime.text),
             "arrivalTime": stripWhiteSpace(flightArrivalTime.text),
             "airport": stripWhiteSpace(airportName.text),
-            "duration": stripWhiteSpace(flightDuration.text),
+            "duration": stripWhiteSpace(flightDuration.find("div", {"class": "top"}).text),
             "directFlight": stripWhiteSpace(directFlightText.text),
             "carrier": stripWhiteSpace(availableFlightPriceInfo["carrier"]),
             "pricePerPerson": stripWhiteSpace(availableFlightPriceInfo["pricePerPerson"]),
@@ -24,6 +24,9 @@ def returnScrapedFlightPriceInfo(flightsCarrierName, flightsPricePerPerson, flig
 
 def scrapeFlightInformation (data):
     soup = BeautifulSoup(data, 'html.parser')
+
+    with open("dublin_london_kayak_attempt_3.com.html", "w", encoding='utf-8') as file:
+        file.write(str(soup.prettify()))
 
     flightDepartureTimes = findElementsBeautifulSoup(soup,"span", "class", "depart-time base-time")
 
@@ -48,23 +51,48 @@ def scrapeFlightInformation (data):
 
         if i % 2 == 0:
             index = int(i / 2)
-            availableFlightPriceInfo = returnScrapedFlightPriceInfo(flightCarrierNames[index], flightsPricePerPerson[index], flightsPriceTotals[index])
+            try:
+                if index < len(flightCarrierNames) and index < len(flightsPricePerPerson) and index < len(flightsPriceTotals):
+                    availableFlightPriceInfo = returnScrapedFlightPriceInfo(flightCarrierNames[index], flightsPricePerPerson[index], flightsPriceTotals[index])
 
-            flightGroup.append((returnScrapedFlightInformation(flightDepartureTimes[i], flightArrivalTimes[i], airportNames[i], flightDurations[i], directFlightTexts[i], availableFlightPriceInfo)))
+                    flightGroup.append((returnScrapedFlightInformation(flightDepartureTimes[i], flightArrivalTimes[i], airportNames[i], flightDurations[i], directFlightTexts[i], availableFlightPriceInfo)))
+            except:
+                raise Exception("Error adding flight result. Out of range.")
 
             if (len(flightGroup) > 1):
-               
-                availableFlightsDict[availableFlightsDictIndex] = flightGroup
+                if availableFlightsDictIndex is 0:
+                    availableFlightsDict[availableFlightsDictIndex] = flightGroup
+                else:
+                    print("HITTING")
+                    departureAirport = flightGroup[1]["airport"]
+                    arrivalAirport = flightGroup[0]["airport"]
+                    flightGroup[0]["airport"] = departureAirport
+                    flightGroup[1]["airport"] = arrivalAirport
+                    availableFlightsDict[availableFlightsDictIndex] = flightGroup
+                    print(flightGroup)
                 flightGroup = []
                 availableFlightsDictIndex += 1
         else:
             index = int(i / 2)
-            availableFlightPriceInfo = returnScrapedFlightPriceInfo(flightCarrierNames[index], flightsPricePerPerson[index], flightsPriceTotals[index])
-            flightGroup.append((returnScrapedFlightInformation(flightDepartureTimes[i], flightArrivalTimes[i], airportNames[i], flightDurations[i], directFlightTexts[i], availableFlightPriceInfo)))
+
+            try:
+                if index < len(flightCarrierNames) and index < len(flightsPricePerPerson) and index < len(flightsPriceTotals):
+                    availableFlightPriceInfo = returnScrapedFlightPriceInfo(flightCarrierNames[index], flightsPricePerPerson[index], flightsPriceTotals[index])
+                    flightGroup.append((returnScrapedFlightInformation(flightDepartureTimes[i], flightArrivalTimes[i], airportNames[i], flightDurations[i], directFlightTexts[i], availableFlightPriceInfo)))
+            except:
+                raise Exception("Error adding flight result. Out of range.")
 
             if (len(flightGroup) > 1):
-               
-                availableFlightsDict[availableFlightsDictIndex] = flightGroup
+                if availableFlightsDictIndex is 0:
+                    availableFlightsDict[availableFlightsDictIndex] = flightGroup
+                else:
+                    print("HITTING")
+                    departureAirport = flightGroup[1]["airport"]
+                    arrivalAirport = flightGroup[0]["airport"]
+                    flightGroup[0]["airport"] = departureAirport
+                    flightGroup[1]["airport"] = arrivalAirport
+                    availableFlightsDict[availableFlightsDictIndex] = flightGroup
+                    print(flightGroup)
                 flightGroup = []
                 availableFlightsDictIndex += 1
     
