@@ -35,7 +35,7 @@ jwt = JWTManager(app)
 def setup():
      bootstrapDbOnInitialLoad()
 
-@app.route("/login", methods=["POST"])
+@app.route("/api/v1/login", methods=["POST"])
 def login():
     try:
         username = request.json.get("username", None)
@@ -53,14 +53,14 @@ def login():
     refresh_token = create_refresh_token(identity=username)
     return jsonify(access_token=access_token,refresh_token=refresh_token)
 
-@app.route("/refresh", methods=["POST"])
+@app.route("/api/v1/refresh", methods=["POST"])
 @jwt_required(refresh=True)
 def refresh_token():
     identity = get_jwt_identity()
     access_token= create_access_token(identity=identity, fresh=False)
     return jsonify(access_token=access_token)
 
-@app.route('/accommodation', methods=['GET'])
+@app.route('/api/v1/accommodation', methods=['GET'])
 @jwt_required(fresh=True)
 def create_accommodation_information():
 
@@ -143,7 +143,7 @@ def create_accommodation_information():
 
 
 
-@app.route('/flights', methods=['GET'])
+@app.route('/api/v1/flights', methods=['GET'])
 @jwt_required(fresh=True)
 def create_flight_information():
 
@@ -203,7 +203,7 @@ def create_flight_information():
     return response
 
 
-@app.route('/api/docs')
+@app.route('/api/v1/docs')
 def get_docs():
     print('sending docs')
     return render_template('swaggerui.html')
