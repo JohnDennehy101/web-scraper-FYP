@@ -24,6 +24,7 @@ Can be found at https://group-activity-planning-flask.herokuapp.com/api/v1/docs
 - It's good practice to use a virtual environment before installing the project requirements. Use the following command in the terminal to create a virtual environment - `python3 -m venv env`
 - To activate the virtual environment, use the following command - `source env/bin/activate`
 - Now project dependencies need to be installed, enter the following command in the terminal - `pip install -r requirements.txt`
+- You need to have MySQL Server installed and a MySQL database running locally for the API to function locally. For more information on how to do this, please follow the instructions at this site (Method 3 - Create a database using MySQL Workbench): https://blog.devart.com/creating-a-new-database-in-mysql-tutorial-with-examples.html
 - To get the app functional, a .env file needs to be added to the project. To do this, enter the following command - `touch .env`
 - The .env file should now be created. To edit this file, enter the following - `nano .env`
 - A nano editor should now be displayed in terminal with the .env file open. This now needs to be populated with the relevant environment variables list below.
@@ -31,14 +32,13 @@ Can be found at https://group-activity-planning-flask.herokuapp.com/api/v1/docs
   - JWT_SECRET_KEY={populate this with a password of your choice}
   - ACCESS_USERNAME={Enter a private username that you will use for authorization}
   - ACCESS_PASSWORD={Enter a private password that you will use for authorization}
-  - DB_PASSWORD={Enter the password of your local postgres db here}
+  - DB_PASSWORD={Enter the password of your local MySQL db here}
   - DB_HOSTNAME=localhost
   - DB_USERNAME=root
-  - DB_NAME={name of db that you want to use locally}
+  - DB_NAME={name of MySQL db that you want to use locally}
 
 - Save the .env file `(Ctrl + O)`
 - To exit the file enter `(Ctrl + X)`
-- You need to have a Postgres database running locally for the API to function locally.
 - Once all this is complete, enter `FLASK_APP=main.py FLASK_ENV=development flask run ` to get the project running locally on localhost.
 - You can then navigate to the Swagger documents locally at `http://127.0.0.1:5000/api/v1/docs`
 - To stop the Flask server locally, hit CTRL and C in the terminal to kill the process.

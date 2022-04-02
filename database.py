@@ -32,7 +32,7 @@ def bootstrapDbOnInitialLoad():
     
     print(connection)
 
-    createDatabaseQuery = "CREATE DATABASE web_scraped_information"
+    createDatabaseQuery = "CREATE DATABASE {databaseName}".format(databaseName=DB_NAME)
 
     createFlightTable = """
     CREATE TABLE flight (
