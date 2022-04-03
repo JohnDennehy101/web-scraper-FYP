@@ -13,7 +13,11 @@ from flask_jwt_extended import JWTManager
 from flask_jwt_extended import get_jwt_identity
 import logging
 
+ # Use http://127.0.0.1:5000/api/v1 for running locally
+baseUrl = "https://group-activity-planning-flask.herokuapp.com/api/v1"
+
 class ApiTest(unittest.TestCase):
+   
     def mock_jwt_required(realm):
         return
 
@@ -26,17 +30,17 @@ class ApiTest(unittest.TestCase):
         self.app_context.pop()
 
     def test1_login_no_credentials(self):
-        url = "http://127.0.0.1:5000/login"
+        url = "{}/login".format(baseUrl)
         r = requests.post(url)
         self.assertEqual(r.status_code, 400)
 
     def test2_login_invalid_credentials(self):
-        url = "http://127.0.0.1:5000/login"
+        url = "{}/login".format(baseUrl)
         r = requests.post(url, json={'username': 'wrongemail@gmail.com', 'password': 'WrongPassword'})
         self.assertEqual(r.status_code, 401)
     
     def test3_login_valid_credentials(self):
-        url = "http://127.0.0.1:5000/login"
+        url = "{}/login".format(baseUrl)
         ACCESS_USERNAME = os.getenv("ACCESS_USERNAME")
         ACCESS_PASSWORD = os.getenv("ACCESS_PASSWORD")
         r = requests.post(url, json={'username': ACCESS_USERNAME, 'password': ACCESS_PASSWORD})
@@ -47,7 +51,7 @@ class ApiTest(unittest.TestCase):
   
   
     def test4_refresh_jwt_valid_token(self):
-        url = "http://127.0.0.1:5000/refresh" 
+        url = "{}/refresh".format(baseUrl)
 
         ACCESS_USERNAME = os.getenv("ACCESS_USERNAME")
         refresh_token = create_refresh_token(identity=ACCESS_USERNAME)
@@ -61,7 +65,7 @@ class ApiTest(unittest.TestCase):
     
 
     def test5_refresh_invalid_jwt_type_token(self):
-        refreshUrl = "http://127.0.0.1:5000/refresh"
+        refreshUrl = "{}/refresh".format(baseUrl)
 
         ACCESS_USERNAME = os.getenv("ACCESS_USERNAME")
         refresh_token = create_access_token(identity=ACCESS_USERNAME, fresh=True)
@@ -75,7 +79,7 @@ class ApiTest(unittest.TestCase):
 
     
     def test7_get_accommodation_error_no_query_params(self):
-        accommodationUrl = "http://127.0.0.1:5000/accommodation"
+        accommodationUrl = "{}/accommodation".format(baseUrl)
 
         ACCESS_USERNAME = os.getenv("ACCESS_USERNAME")
 
@@ -90,7 +94,7 @@ class ApiTest(unittest.TestCase):
 
     
     def test8_get_accommodation_error_no_JWT(self):
-        accommodationUrl = "http://127.0.0.1:5000/accommodation"
+        accommodationUrl = "{}/accommodation".format(baseUrl)
 
         r = requests.get(accommodationUrl)
         self.assertEqual(r.status_code, 401)
@@ -98,7 +102,7 @@ class ApiTest(unittest.TestCase):
     
 
     def test9_get_accommodation_with_valid_request(self):
-        accommodationUrl = "http://127.0.0.1:5000/accommodation"
+        accommodationUrl = "{}/accommodation".format(baseUrl)
 
         ACCESS_USERNAME = os.getenv("ACCESS_USERNAME")
 
@@ -121,14 +125,14 @@ class ApiTest(unittest.TestCase):
     
 
     def test10_get_flights_error_no_JWT(self):
-        flightsUrl = "http://127.0.0.1:5000/flights"
+        flightsUrl = "{}/flights".format(baseUrl)
 
         r = requests.get(flightsUrl)
         self.assertEqual(r.status_code, 401)
     
 
     def test11_get_flights_error_no_query_params(self):
-        flightsUrl = "http://127.0.0.1:5000/flights"
+        flightsUrl = "{}/flights".format(baseUrl)
 
         ACCESS_USERNAME = os.getenv("ACCESS_USERNAME")
 
@@ -143,7 +147,7 @@ class ApiTest(unittest.TestCase):
     
 
     def test12_get_flights_with_valid_request(self):
-        flightsUrl = "http://127.0.0.1:5000/flights"
+        flightsUrl = "{}/flights".format(baseUrl)
 
         ACCESS_USERNAME = os.getenv("ACCESS_USERNAME")
 
@@ -163,3 +167,5 @@ class ApiTest(unittest.TestCase):
 
         r = requests.get(flightsUrl, headers=headers, params=params)
         self.assertEqual(r.status_code, 200)
+if __name__ == '__main__':
+    unittest.main()
