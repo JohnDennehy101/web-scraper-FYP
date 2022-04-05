@@ -7,7 +7,7 @@ from time import sleep
 from scrapeAccommodationInfo import extractNumberOfAvailableProperties, stripWhiteSpace, findElementsBeautifulSoup, scrapeHotelInformation, returnScrapedHotelInformation
 from scrapeFlightInfo import scrapeFlightInformation
 from database import checkDbForExistingRecords
-from utils import makeWebScrapeRequest, returnDateComponents
+from utils import makeWebScrapeRequest, returnDateComponents, validateDateQueryParameter, validateNumberQueryParameter
 from flask import Flask, make_response, render_template, request, jsonify
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt
@@ -63,21 +63,23 @@ def refresh_token():
 @app.route('/api/v1/accommodation', methods=['GET'])
 @jwt_required(fresh=True)
 def create_accommodation_information():
-
-
-
     destinationCity = request.args.get('destinationCity')
     startDate = request.args.get('startDate')
     endDate = request.args.get('endDate')
     numberOfPeople = request.args.get('numberOfPeople')
     numberOfRooms = request.args.get('numberOfRooms')
 
-    if not destinationCity or not startDate or not endDate or not numberOfPeople or not numberOfRooms:
+    try:
+        cityDestinationId = BookingCityDestinationCodes[destinationCity]
+    except:
+        return jsonify({"msg": "Must provide valid Irish city value for destination city"}), 400
+
+    print(startDate)
+    if not isinstance(destinationCity, str) or not validateDateQueryParameter(startDate) or not validateDateQueryParameter(endDate) or not validateNumberQueryParameter(numberOfPeople) or not validateNumberQueryParameter(numberOfRooms):
         return jsonify({"msg": "Must provide valid values for each query parameter"}), 400
 
     startDateDict = returnDateComponents(startDate)
     endDateDict = returnDateComponents(endDate)
-    cityDestinationId = BookingCityDestinationCodes[destinationCity]
 
     existingScrapedRecords = checkDbForExistingRecords(destinationCity, startDate, endDate)
 
@@ -152,17 +154,16 @@ def create_flight_information():
     startDate = request.args.get('startDate')
     endDate = request.args.get('endDate')
     numberOfPeople = request.args.get('numberOfPeople')
+    try:
+        departureCityPrefix = KayakCityCodes[fromCity]
+        arrivalCityPrefix = KayakCityCodes[destinationCity]
+    except:
+        return jsonify({"msg": "Must provide valid values cities"}), 400
 
-    if not fromCity or not destinationCity or not startDate or not endDate or not numberOfPeople:
+    if not isinstance(fromCity, str) or not isinstance(destinationCity, str) or not validateDateQueryParameter(startDate) or not validateDateQueryParameter(endDate) or not validateNumberQueryParameter(numberOfPeople):
         return jsonify({"msg": "Must provide valid values for each query parameter"}), 400
 
-  
-    departureCityPrefix = KayakCityCodes[fromCity]
-    arrivalCityPrefix = KayakCityCodes[destinationCity]
-
-
     existingScrapedRecords = checkDbForExistingFlightRecords(fromCity, destinationCity, startDate, endDate)
-
 
     if existingScrapedRecords and "1" in existingScrapedRecords:
         return make_response(jsonify(existingScrapedRecords), 200)

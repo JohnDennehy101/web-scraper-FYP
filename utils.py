@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import re
 
 def makeWebScrapeRequest(url):
     r = requests.get(
@@ -27,3 +28,9 @@ def returnDateComponents(date):
 
 def returnStringDateRepresentation(date):
     return "{}-{}-{}".format(str(date)[0:4], str(date)[5:7], str(date)[8:10])
+
+def validateDateQueryParameter(string):
+    return re.match(r"[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]", string)
+
+def validateNumberQueryParameter(number):
+    return re.match(r"[0-9]", number)
