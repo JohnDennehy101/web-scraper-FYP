@@ -165,7 +165,7 @@ def create_flight_information():
 
     existingScrapedRecords = checkDbForExistingFlightRecords(fromCity, destinationCity, startDate, endDate)
 
-    if existingScrapedRecords and "1" in existingScrapedRecords:
+    if existingScrapedRecords and 1 in existingScrapedRecords:
         return make_response(jsonify(existingScrapedRecords), 200)
 
     
