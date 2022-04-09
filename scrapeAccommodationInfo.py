@@ -59,8 +59,6 @@ def returnScrapedHotelInformation(hotelName, bookingSiteLink, bookingSiteLocatio
             else:
                 freeCancellationText = "Free Cancellation Not Available"
 
-            
-            
             if len(bookingSiteAvailabilityGroup[i].findChildren("div")[1].findChildren("span")) > 3:
                 roomTypeRecommendedBooking = bookingSiteAvailabilityGroup[i].findChildren("span")[3].text
                 numberOfRoomsRecommendedBooking = bookingSiteAvailabilityGroup[i].findChildren("span")[2].text
@@ -87,8 +85,6 @@ def returnScrapedHotelInformation(hotelName, bookingSiteLink, bookingSiteLocatio
             else:
                 freeCancellationText = "Free Cancellation Not Available"
 
-            
-              
             if len(bookingSiteAvailabilitySingle[i].findChildren("span")) > 0:
                 roomTypeRecommendedBooking = bookingSiteAvailabilitySingle[i].findChildren("span")[0].text
             else:
@@ -124,12 +120,7 @@ def returnScrapedHotelInformation(hotelName, bookingSiteLink, bookingSiteLocatio
 def scrapeHotelInformation (data, offset):
     soup = BeautifulSoup(data, 'html.parser')
 
-    #with open("kilkenny_booking_6.com.html", "w", encoding='utf-8') as file:
-    #   file.write(str(soup.prettify()))
-    
-    #Find number of properties available (use this to loop over different pages of results)
     numberOfProperties = soup.findAll("div", attrs={'data-component': 'arp-header'})[0].findChildren("h1")[0].text
-
 
     hotelNames = findElementsBeautifulSoup(soup,"div", "data-testid", "title")
 
@@ -157,11 +148,6 @@ def scrapeHotelInformation (data, offset):
     for i in range(0, len(hotelNames)):
 
         availablePropertiesArray.append(returnScrapedHotelInformation(hotelNames[i],bookingSiteLinks[i],bookingSiteLocationLinks[i],bookingSiteLocationTexts[i],bookingSiteDistances[i],bookingSiteReviews,bookingSiteAvailabilityGroup,bookingSiteAvailabilitySingle,bookingSiteRoomNightAvailability[i],bookingSitePrices[i],bookingSiteRoomLink[i], i))
-    
-    #Send availableProperties Array to db for insertion
-
-    #insertAccommodationInfo(availablePropertiesArray)
-
 
     return {
         "propertiesResult": availablePropertiesArray,

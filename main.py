@@ -74,7 +74,6 @@ def create_accommodation_information():
     except:
         return jsonify({"msg": "Must provide valid Irish city value for destination city"}), 400
 
-    print(startDate)
     if not isinstance(destinationCity, str) or not validateDateQueryParameter(startDate) or not validateDateQueryParameter(endDate) or not validateNumberQueryParameter(numberOfPeople) or not validateNumberQueryParameter(numberOfRooms):
         return jsonify({"msg": "Must provide valid values for each query parameter"}), 400
 
@@ -109,22 +108,9 @@ def create_accommodation_information():
     
         hotelHtml = None
         hotelHtml = makeWebScrapeRequest(finalUrl)
-   
 
-    
-        """
-        with open('limerick_booking.com.html', 'r') as f:
-            contents = f.read()
-            hotelHtml = contents
-        """
-    
- 
-        
-    
-        #sleep(randint(5,15))
         hotelResultDict = scrapeHotelInformation(hotelHtml, offset) 
         insertAccommodationInfo(hotelResultDict['propertiesResult'], pageIndex, startDate, endDate)
-        #finalHotelDict.append(hotelResultDict['propertiesResult'])
         finalHotelDict["resultPages"][pageIndex] = hotelResultDict['propertiesResult']
         numberOfProperties = extractNumberOfAvailableProperties(hotelResultDict['numberOfPropertiesString'])
         pageIndex += 1
@@ -134,10 +120,6 @@ def create_accommodation_information():
             additionalPage = False
         additionalPage = False
     
-    with open("results.txt", "w") as file:
-        file.write(str(finalHotelDict))
-    
-    headers = {"Content-Type": "application/json"}
     response = make_response(jsonify(finalHotelDict), 200)
     response.headers["Content-Type"] = "application/json"
     return response
@@ -170,19 +152,12 @@ def create_flight_information():
 
     
     flightHtml = None
-    #Still need to map destination ids to dict so that they can be dynamically loaded into url
     flightSiteUrl = Template("https://www.kayak.ie/flights/$departureCityPrefix-$arrivalCityPrefix/$startDate/$endDate/$numberOfPeopleadults?sort=bestflight_a")
 
     completeFlightUrl = flightSiteUrl.substitute(departureCityPrefix=str(departureCityPrefix), arrivalCityPrefix=str(arrivalCityPrefix), startDate=str(startDate)[0:10], endDate=str(endDate)[0:10],numberOfPeopleadults=str(numberOfPeople) + 'adults')
 
     print(completeFlightUrl)
     flightHtml = makeWebScrapeRequest(completeFlightUrl)
- 
-    """
-    with open('dublin_london_kayak_2_attempt_2.com.html', 'r') as f:
-        contents = f.read()
-        flightHtml = contents
-    """
 
     flightResultDict = scrapeFlightInformation(flightHtml)
 
@@ -193,10 +168,6 @@ def create_flight_information():
     sleep(8)
     flightHtml = makeWebScrapeRequest(completeFlightUrl)
     flightResultDict = scrapeFlightInformation(flightHtml)
-
-
-    with open("kayak-results.txt", "w") as file:
-        file.write(str(flightResultDict))
 
     insertFlightInfo(flightResultDict, startDate, endDate, fromCity, destinationCity, completeFlightUrl)
     response = make_response(jsonify(flightResultDict), 200)
