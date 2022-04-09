@@ -156,7 +156,6 @@ def create_flight_information():
 
     completeFlightUrl = flightSiteUrl.substitute(departureCityPrefix=str(departureCityPrefix), arrivalCityPrefix=str(arrivalCityPrefix), startDate=str(startDate)[0:10], endDate=str(endDate)[0:10],numberOfPeopleadults=str(numberOfPeople) + 'adults')
 
-    print(completeFlightUrl)
     flightHtml = makeWebScrapeRequest(completeFlightUrl)
 
     flightResultDict = scrapeFlightInformation(flightHtml)
@@ -177,7 +176,6 @@ def create_flight_information():
 
 @app.route('/api/v1/docs')
 def get_docs():
-    print('sending docs')
     return render_template('swaggerui.html')
 
 

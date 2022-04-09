@@ -6,7 +6,6 @@ from database import insertAccommodationInfo
 def extractNumberOfAvailableProperties(numberOfAvailablePropertiesString):
     numberOfAvailablePropertiesRegexCheck = re.findall("[0-9]", numberOfAvailablePropertiesString)
     numberOfAvailableProperties = ''.join(numberOfAvailablePropertiesRegexCheck)
-    print(numberOfAvailableProperties)
     return int(numberOfAvailableProperties)
 
 def returnScrapedHotelInformation(hotelName, bookingSiteLink, bookingSiteLocationLink, bookingSiteLocationText, bookingSiteDistance, bookingSiteReviews, bookingSiteAvailabilityGroup, bookingSiteAvailabilitySingle, bookingSiteRoomNightAvailability, bookingSitePrice, bookingSiteRoomLink, i):
@@ -72,7 +71,6 @@ def returnScrapedHotelInformation(hotelName, bookingSiteLink, bookingSiteLocatio
                 numberOfBedsRecommendedBooking = "Recommended Booking Info Not Available"
 
     elif len(bookingSiteAvailabilitySingle) > 0:
-        print("HITTING Booking Single Type")
         bookingSiteAvailabilityType = bookingSiteAvailabilitySingle[i]
         if bookingSiteAvailabilitySingle[i].findChildren("div")[1]:
             

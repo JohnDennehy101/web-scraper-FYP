@@ -99,7 +99,7 @@ def scrapeFlightInformation (data):
                     flightGroup[0]["airport"] = departureAirport
                     flightGroup[1]["airport"] = arrivalAirport
                     availableFlightsDict[availableFlightsDictIndex] = flightGroup
-                    print(flightGroup)
+                   
                 flightGroup = []
                 availableFlightsDictIndex += 1
     
