@@ -25,9 +25,6 @@ def returnScrapedFlightPriceInfo(flightsCarrierName, flightsPricePerPerson, flig
 def scrapeFlightInformation (data):
     soup = BeautifulSoup(data, 'html.parser')
 
-    with open("dublin_london_kayak_attempt_3.com.html", "w", encoding='utf-8') as file:
-        file.write(str(soup.prettify()))
-
     flightDepartureTimes = findElementsBeautifulSoup(soup,"span", "class", "depart-time base-time")
 
     flightArrivalTimes = findElementsBeautifulSoup(soup,"span", "class", "arrival-time base-time")
@@ -54,8 +51,14 @@ def scrapeFlightInformation (data):
             try:
                 if index < len(flightCarrierNames) and index < len(flightsPricePerPerson) and index < len(flightsPriceTotals):
                     availableFlightPriceInfo = returnScrapedFlightPriceInfo(flightCarrierNames[index], flightsPricePerPerson[index], flightsPriceTotals[index])
-
-                    flightGroup.append((returnScrapedFlightInformation(flightDepartureTimes[i], flightArrivalTimes[i], airportNames[i], flightDurations[i], directFlightTexts[i], availableFlightPriceInfo)))
+                    duplicateCheck = False
+                    for item in range(len(availableFlightsDict)):
+                        for individualFlight in range(len(availableFlightsDict[item])):
+                            if availableFlightsDict[item][individualFlight]["departureTime"] == flightDepartureTimes[i] and availableFlightsDict[item][individualFlight]["arrivalTime"] == flightArrivalTimes[i] and availableFlightsDict[item][individualFlight]["priceTotal"] == availableFlightPriceInfo["priceTotal"] and availableFlightsDict[item][individualFlight]["pricePerPerson"] == availableFlightPriceInfo["pricePerPerson"]:
+                                duplicateCheck = True
+                                break
+                    if not duplicateCheck:
+                        flightGroup.append((returnScrapedFlightInformation(flightDepartureTimes[i], flightArrivalTimes[i], airportNames[i], flightDurations[i], directFlightTexts[i], availableFlightPriceInfo)))
             except:
                 raise Exception("Error adding flight result. Out of range.")
 
@@ -63,13 +66,11 @@ def scrapeFlightInformation (data):
                 if availableFlightsDictIndex is 0:
                     availableFlightsDict[availableFlightsDictIndex] = flightGroup
                 else:
-                    print("HITTING")
                     departureAirport = flightGroup[1]["airport"]
                     arrivalAirport = flightGroup[0]["airport"]
                     flightGroup[0]["airport"] = departureAirport
                     flightGroup[1]["airport"] = arrivalAirport
                     availableFlightsDict[availableFlightsDictIndex] = flightGroup
-                    print(flightGroup)
                 flightGroup = []
                 availableFlightsDictIndex += 1
         else:
@@ -78,7 +79,14 @@ def scrapeFlightInformation (data):
             try:
                 if index < len(flightCarrierNames) and index < len(flightsPricePerPerson) and index < len(flightsPriceTotals):
                     availableFlightPriceInfo = returnScrapedFlightPriceInfo(flightCarrierNames[index], flightsPricePerPerson[index], flightsPriceTotals[index])
-                    flightGroup.append((returnScrapedFlightInformation(flightDepartureTimes[i], flightArrivalTimes[i], airportNames[i], flightDurations[i], directFlightTexts[i], availableFlightPriceInfo)))
+                    duplicateCheck = False
+                    for item in range(len(availableFlightsDict)):
+                        for individualFlight in range(len(availableFlightsDict[item])):
+                            if availableFlightsDict[item][individualFlight]["departureTime"] == flightDepartureTimes[i] and availableFlightsDict[item][individualFlight]["arrivalTime"] == flightArrivalTimes[i] and availableFlightsDict[item][individualFlight]["priceTotal"] == availableFlightPriceInfo["priceTotal"] and availableFlightsDict[item][individualFlight]["pricePerPerson"] == availableFlightPriceInfo["pricePerPerson"]:
+                                duplicateCheck = True
+                                break
+                    if not duplicateCheck:
+                        flightGroup.append((returnScrapedFlightInformation(flightDepartureTimes[i], flightArrivalTimes[i], airportNames[i], flightDurations[i], directFlightTexts[i], availableFlightPriceInfo)))
             except:
                 raise Exception("Error adding flight result. Out of range.")
 
@@ -86,13 +94,12 @@ def scrapeFlightInformation (data):
                 if availableFlightsDictIndex is 0:
                     availableFlightsDict[availableFlightsDictIndex] = flightGroup
                 else:
-                    print("HITTING")
                     departureAirport = flightGroup[1]["airport"]
                     arrivalAirport = flightGroup[0]["airport"]
                     flightGroup[0]["airport"] = departureAirport
                     flightGroup[1]["airport"] = arrivalAirport
                     availableFlightsDict[availableFlightsDictIndex] = flightGroup
-                    print(flightGroup)
+                   
                 flightGroup = []
                 availableFlightsDictIndex += 1
     
