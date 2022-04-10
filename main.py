@@ -87,38 +87,20 @@ def create_accommodation_information():
         if len(existingScrapedRecords) > 0:
             return make_response(jsonify(existingScrapedRecords), 200)
 
-    additionalPage = True
-    offset = 0
-    offsetQueryParameter = ''
     finalHotelDict = {"resultPages": {
     }}
 
-    
+    hotelSiteUrl = Template("https://www.booking.com/searchresults.en-gb.html?aid=304142&sb_price_type%3Dtotal%3Bsrpvid%3Dff4c997b5ad30070%26%3B=&ss=$destinationCity&is_ski_area=0&ssne=$destinationCity&ssne_untouched=$destinationCity&dest_id=$destinationId&dest_type=city&checkin_year=$checkinYear&checkin_month=$checkinMonth&checkin_monthday=$checkinMonthDay&checkout_year=$checkoutYear&checkout_month=$checkoutMonth&checkout_monthday=$checkoutMonthDay&group_adults=$numberOfPeople&group_children=0&no_rooms=1&b_h4u_keep_filters=&from_sf=1")
 
-    while additionalPage:
-        hotelSiteUrl = Template("https://www.booking.com/searchresults.en-gb.html?aid=304142&sb_price_type%3Dtotal%3Bsrpvid%3Dff4c997b5ad30070%26%3B=&ss=$destinationCity&is_ski_area=0&ssne=$destinationCity&ssne_untouched=$destinationCity&dest_id=$destinationId&dest_type=city&checkin_year=$checkinYear&checkin_month=$checkinMonth&checkin_monthday=$checkinMonthDay&checkout_year=$checkoutYear&checkout_month=$checkoutMonth&checkout_monthday=$checkoutMonthDay&group_adults=$numberOfPeople&group_children=0&no_rooms=1&b_h4u_keep_filters=&from_sf=1")
+    finalUrl = hotelSiteUrl.substitute(destinationCity=destinationCity, destinationId=cityDestinationId, checkinYear=startDateDict['year'], checkinMonth=startDateDict['month'], checkinMonthDay=startDateDict['day'], checkoutYear=endDateDict['year'], checkoutMonth=endDateDict['month'], checkoutMonthDay=endDateDict['day'], numberOfPeople=numberOfPeople)
 
-        finalUrl = hotelSiteUrl.substitute(destinationCity=destinationCity, destinationId=cityDestinationId, checkinYear=startDateDict['year'], checkinMonth=startDateDict['month'], checkinMonthDay=startDateDict['day'], checkoutYear=endDateDict['year'], checkoutMonth=endDateDict['month'], checkoutMonthDay=endDateDict['day'], numberOfPeople=numberOfPeople)
+    pageIndex = 1
+    hotelHtml = makeWebScrapeRequest(finalUrl)
 
-        pageIndex = 1
-    
-        if offset > 0:
-            offsetQueryParameter = "&offset={quantity}".format(quantity=offset)
-            hotelSiteUrl += offsetQueryParameter
-    
-        hotelHtml = None
-        hotelHtml = makeWebScrapeRequest(finalUrl)
-
-        hotelResultDict = scrapeHotelInformation(hotelHtml, offset) 
-        insertAccommodationInfo(hotelResultDict['propertiesResult'], pageIndex, startDate, endDate)
-        finalHotelDict["resultPages"][pageIndex] = hotelResultDict['propertiesResult']
-        numberOfProperties = extractNumberOfAvailableProperties(hotelResultDict['numberOfPropertiesString'])
-        pageIndex += 1
-        offset += 25
-        #if (numberOfProperties - offset) < 0:
-        if offset == 50:
-            additionalPage = False
-        additionalPage = False
+    hotelResultDict = scrapeHotelInformation(hotelHtml) 
+    insertAccommodationInfo(hotelResultDict['propertiesResult'], pageIndex, startDate, endDate)
+    finalHotelDict["resultPages"][pageIndex] = hotelResultDict['propertiesResult']
+    extractNumberOfAvailableProperties(hotelResultDict['numberOfPropertiesString'])
     
     response = make_response(jsonify(finalHotelDict), 200)
     response.headers["Content-Type"] = "application/json"

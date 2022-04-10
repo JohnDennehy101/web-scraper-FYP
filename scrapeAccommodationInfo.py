@@ -115,7 +115,7 @@ def returnScrapedHotelInformation(hotelName, bookingSiteLink, bookingSiteLocatio
 
 
 
-def scrapeHotelInformation (data, offset):
+def scrapeHotelInformation (data):
     soup = BeautifulSoup(data, 'html.parser')
 
     numberOfProperties = soup.findAll("div", attrs={'data-component': 'arp-header'})[0].findChildren("h1")[0].text
@@ -149,6 +149,5 @@ def scrapeHotelInformation (data, offset):
 
     return {
         "propertiesResult": availablePropertiesArray,
-        "offset": offset,
         "numberOfPropertiesString": numberOfProperties
     }

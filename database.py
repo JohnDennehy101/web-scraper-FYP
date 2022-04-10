@@ -56,25 +56,29 @@ def bootstrapDbOnInitialLoad():
     );
     """
 
-    createFlightTable = """
-    CREATE TABLE flight (
-    flightId int NOT NULL AUTO_INCREMENT,
-    PRIMARY KEY (flightId),
+    createAccommodationTable = """
+    CREATE TABLE accommodation (
+    accommodationId int NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (accommodationId),
     startDate VARCHAR (100),
     endDate VARCHAR (100),
-    departureCity VARCHAR(100),
-    arrivalCity VARCHAR(100),
-    departureTime VARCHAR(100) NOT NULL,
-    arrivalTime VARCHAR(100) NOT NULL,
-    airport VARCHAR(100),
-    duration VARCHAR(100),
-    directFlight VARCHAR(100),
-    carrier VARCHAR(200),
-    pricePerPerson VARCHAR(100),
-    priceTotal VARCHAR(100),
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    indexPosition VARCHAR(10),
-    flightUrl VARCHAR(500)
+    title VARCHAR(200) NOT NULL,
+    bookingPreviewLink VARCHAR(700),
+    bookingSiteDisplayLocationMapLink VARCHAR(700),
+    bookingSiteLink VARCHAR(700),
+    freeCancellationText VARCHAR(200),
+    locationDistance VARCHAR(100),
+    locationTitle VARCHAR(100),
+    numberOfBedsRecommendedBooking VARCHAR(700),
+    numberOfNightsAndGuests VARCHAR(300),
+    numberOfRoomsRecommendedBooking VARCHAR(300),
+    price VARCHAR(50),
+    ratingScore VARCHAR(50),
+    ratingScoreCategory VARCHAR(50),
+    reviewQuantity VARCHAR(50),
+    roomTypeRecommendedBooking VARCHAR(50),
+    page VARCHAR(5),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     """
     createDb(connection, createDatabaseQuery)
@@ -166,14 +170,11 @@ def checkDbForExistingRecords(destinationCity, startDate, endDate):
     startDateString = returnStringDateRepresentation(startDate)
     endDateString = returnStringDateRepresentation(endDate)
 
-    #Note that check is made for eventId - optimising this would remove this dependency
-
     timestampMinusADay = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-
     existingRecordsQuery = """
     SELECT * FROM accommodation
-    WHERE locationTitle = '{}' AND startDate = '{}' AND endDate = '{}' AND timestamp > '{}'
-    """.format(destinationCity, startDateString, endDateString, timestampMinusADay)
+    WHERE locationTitle LIKE '{}' AND startDate = '{}' AND endDate = '{}' AND timestamp > '{}'
+    """.format("%" + destinationCity + "%", startDateString, endDateString, timestampMinusADay)
 
     
 
@@ -189,7 +190,7 @@ def checkDbForExistingRecords(destinationCity, startDate, endDate):
             "2": [],
             "3": []
         }}
-
+            print(len(dbRecords))
 
             for record in range(len(dbRecords)):
            
@@ -233,8 +234,6 @@ def checkDbForExistingFlightRecords(fromCity, destinationCity, startDate, endDat
     endDateString = returnStringDateRepresentation(endDate)
 
     timestampMinusADay = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-
-     #Note that check is made for eventId - optimising this would remove this dependency
 
     existingRecordsQuery = """
     SELECT * FROM flight
@@ -309,68 +308,3 @@ def checkDbForExistingFlightRecords(fromCity, destinationCity, startDate, endDat
     else:
         return []
 
-
-
-
-
-
-createAccommodationTable = """
-CREATE TABLE accommodation (
-  accommodationId int NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (accommodationId),
-  startDate VARCHAR (100),
-  endDate VARCHAR (100),
-  title VARCHAR(60) NOT NULL,
-  bookingPreviewLink VARCHAR(700),
-  bookingSiteDisplayLocationMapLink VARCHAR(700),
-  bookingSiteLink VARCHAR(700),
-  freeCancellationText VARCHAR(200),
-  locationDistance VARCHAR(100),
-  locationTitle VARCHAR(100),
-  numberOfBedsRecommendedBooking VARCHAR(700),
-  numberOfNightsAndGuests VARCHAR(300),
-  numberOfRoomsRecommendedBooking VARCHAR(300),
-  price VARCHAR(50),
-  ratingScore VARCHAR(50),
-  ratingScoreCategory VARCHAR(50),
-  reviewQuantity VARCHAR(50),
-  roomTypeRecommendedBooking VARCHAR(50),
-  page VARCHAR(5),
-  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-"""
-
-createFlightTable = """
-CREATE TABLE flight (
-  flightId int NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (flightId),
-  startDate VARCHAR (100),
-  endDate VARCHAR (100),
-  departureCity VARCHAR(100),
-  arrivalCity VARCHAR(100),
-  departureTime VARCHAR(100) NOT NULL,
-  arrivalTime VARCHAR(100) NOT NULL,
-  airport VARCHAR(100),
-  duration VARCHAR(100),
-  directFlight VARCHAR(100),
-  carrier VARCHAR(200),
-  pricePerPerson VARCHAR(100),
-  priceTotal VARCHAR(100),
-  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  indexPosition VARCHAR(10),
-  flightUrl VARCHAR(500)
-);
-"""
-
-
-
-"""
-connection = createDbConnection(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_NAME)
-executeQuery(connection, createFlightTable)
-#executeListQuery(connection, insertAccommodationQuery, scrapedValues)
-print(connection)
-
-createDatabaseQuery = "CREATE DATABASE web_scraped_information"
-
-#createDb(connection, createDatabaseQuery)
-"""
