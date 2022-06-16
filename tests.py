@@ -114,8 +114,8 @@ class ApiTest(unittest.TestCase):
 
         params = {
             'destinationCity': 'Cork',
-            'startDate': '2022-05-14',
-            'endDate': '2022-05-16',
+            'startDate': '2022-07-14',
+            'endDate': '2022-07-16',
             'numberOfPeople': '2',
             'numberOfRooms': '1',
         }
@@ -160,8 +160,8 @@ class ApiTest(unittest.TestCase):
         params = {
             'fromCity': 'Cork',
             'destinationCity': 'London',
-            'startDate': '2022-05-14',
-            'endDate': '2022-05-16',
+            'startDate': '2022-07-14',
+            'endDate': '2022-07-16',
             'numberOfPeople': '2',
         }
 
