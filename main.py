@@ -142,11 +142,11 @@ def create_flight_information():
 
     flightResultDict = scrapeFlightInformation(flightHtml)
 
-    sleep(5)
+    sleep(10)
     flightHtml = makeWebScrapeRequest(completeFlightUrl)
     flightResultDict = scrapeFlightInformation(flightHtml)
 
-    sleep(8)
+    sleep(10)
     flightHtml = makeWebScrapeRequest(completeFlightUrl)
     flightResultDict = scrapeFlightInformation(flightHtml)
 
