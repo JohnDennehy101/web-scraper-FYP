@@ -241,9 +241,11 @@ def checkDbForExistingFlightRecords(fromCity, destinationCity, startDate, endDat
     ORDER BY indexPosition
     """.format(fromCity, destinationCity, startDateString, endDateString, timestampMinusADay)
 
-    
+    print(existingRecordsQuery)
 
     dbRecords = readQuery(connection, existingRecordsQuery)
+
+    print(dbRecords)
 
     if dbRecords is not None:
 

@@ -25,6 +25,9 @@ def returnScrapedFlightPriceInfo(flightsCarrierName, flightsPricePerPerson, flig
 def scrapeFlightInformation (data):
     soup = BeautifulSoup(data, 'html.parser')
 
+    with open("scraped_response.html", "w", encoding='utf-8') as file:
+        file.write(str(soup.prettify()))
+
     flightDepartureTimes = findElementsBeautifulSoup(soup,"span", "class", "depart-time base-time")
 
     flightArrivalTimes = findElementsBeautifulSoup(soup,"span", "class", "arrival-time base-time")
